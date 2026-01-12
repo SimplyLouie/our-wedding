@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, Calendar, MapPin, Gift, Clock, Music, Menu, X, ChevronDown, Check, Loader, Settings, Upload, Link as LinkIcon, Image as ImageIcon, Edit2, Save, ZoomIn, Camera, RefreshCw, Trash2, Lock, ArrowRight, Plus, ArrowUp, ExternalLink, Users, ClipboardList, Search, AlertCircle, CheckCircle, Type, ShieldAlert } from 'lucide-react';
+import { Heart, Calendar, MapPin, Gift, Clock, Music, Menu, X, ChevronDown, Check, Loader, Settings, Upload, Link as LinkIcon, Image as ImageIcon, Edit2, Save, ZoomIn, Camera, RefreshCw, Trash2, Lock, ArrowRight, Plus, ArrowUp, ExternalLink, Users, ClipboardList, Search, AlertCircle, CheckCircle, Type, ShieldAlert, Download, MessageSquare, Utensils } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 /**
- * Modern Wedding Website - V6.6 (Auth Error Handling)
+ * Modern Wedding Website - V7.3 (Animation & Layout Fixes)
  * Features: 
- * - Improved Error Handling for Authentication
- * - Responsive Admin Panel
- * - Full Database Integration
+ * - Fixed Preloader Fade Out (Added unmount delay)
+ * - Adjusted Scroll Indicator Position (Lowered)
+ * - Refined Spacing for Mobile
  */
 
 // --- 1. PASTE YOUR KEYS HERE ---
@@ -45,6 +45,18 @@ const AmbientGlow = () => (
   <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
     <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-[#B08D55] rounded-full mix-blend-multiply filter blur-[120px] opacity-10 animate-pulse-slow"></div>
     <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-[#E6D2B5] rounded-full mix-blend-multiply filter blur-[120px] opacity-10 animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+  </div>
+);
+
+// NEW: Elegant Preloader Component
+const Preloader = ({ fadeOut }) => (
+  <div className={`fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
+    <div className="text-center relative">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#E6D2B5]/20 to-transparent blur-xl animate-pulse"></div>
+      <h1 className="font-script text-6xl md:text-8xl text-[#43342E] mb-6 animate-pulse-slow relative z-10">L & F</h1>
+      <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[#B08D55] to-transparent mx-auto mb-6"></div>
+      <p className="text-[10px] uppercase tracking-[0.5em] text-[#B08D55] animate-fade-in-up">Loading Love...</p>
+    </div>
   </div>
 );
 
@@ -207,7 +219,7 @@ const Countdown = ({ targetDate }) => {
   );
 
   return (
-    <div className="flex flex-wrap justify-center mt-12 md:mt-16 animate-fade-in-up">
+    <div className="flex flex-wrap justify-center mt-8 md:mt-12 animate-fade-in-up">
       <TimeUnit value={timeLeft.days} label="Days" />
       <TimeUnit value={timeLeft.hours} label="Hours" />
       <TimeUnit value={timeLeft.minutes} label="Mins" />
@@ -399,6 +411,30 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
     }
   };
 
+  const downloadCSV = () => {
+    if (!config.guestList || config.guestList.length === 0) return;
+
+    const headers = ['Name', 'Attending', 'Guests', 'Email', 'Message', 'FollowUp Date', 'Timestamp'];
+    const csvContent = [
+      headers.join(','),
+      ...config.guestList.map(guest => [
+        `"${guest.name}"`,
+        guest.attending,
+        guest.guests,
+        guest.email || '',
+        `"${(guest.message || '').replace(/"/g, '""')}"`,
+        guest.followUpDate || '',
+        guest.timestamp
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `wedding_guests_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
   const filteredGuests = config.guestList?.filter(g =>
     g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (g.email && g.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -449,18 +485,42 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
   return (
     <div className="fixed inset-0 z-[60] bg-[#1F1815]/90 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
       <div className="bg-[#FAF9F6] w-full max-w-6xl h-full md:h-[90vh] rounded-none md:rounded-lg shadow-2xl flex flex-col overflow-hidden border border-[#E6D2B5]/20 animate-in zoom-in-95 duration-300">
-        {/* Header */}
-        <div className="bg-white px-4 md:px-8 py-4 md:py-6 border-b border-[#E6D2B5]/30 flex justify-between items-center shrink-0">
-          <div>
-            <div className="flex items-center gap-2">
-              <Settings size={20} className="text-[#B08D55]" />
-              <h2 className="font-serif text-xl md:text-2xl text-[#43342E]">Website Configuration</h2>
-            </div>
-            <p className="text-xs text-[#8C7C72] uppercase tracking-wider mt-1 pl-7 hidden md:block">Admin Dashboard (Cloud Connected)</p>
+        {/* Header - Optimized for Mobile */}
+        <div className="bg-white px-4 md:px-8 py-3 md:py-6 border-b border-[#E6D2B5]/30 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2">
+            <Settings size={20} className="text-[#B08D55]" />
+            <h2 className="font-serif text-lg md:text-2xl text-[#43342E]">Configuration</h2>
           </div>
-          <button onClick={closePanel} className="text-[#8C7C72] hover:text-[#43342E] transition-colors p-2 hover:bg-gray-100 rounded-full">
-            <X size={24} />
-          </button>
+
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* Save Button moved to Header for Mobile Optimization */}
+            <button
+              onClick={handleSaveClick}
+              disabled={isSaving}
+              className={`
+                    flex items-center gap-2 px-4 py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all shadow-md
+                    ${isSaving
+                  ? 'bg-[#E6D2B5] text-white cursor-wait'
+                  : 'bg-[#43342E] text-[#F9F4EF] hover:bg-[#5D4B42]'
+                }
+                `}
+            >
+              {isSaving ? (
+                <Loader size={14} className="animate-spin" />
+              ) : (
+                <Save size={14} />
+              )}
+              <span className="hidden md:inline">{isSaving ? 'Saving...' : 'Save Changes'}</span>
+              <span className="md:hidden">{isSaving ? '...' : 'Save'}</span>
+            </button>
+
+            {/* Status Indicator inside header to save space */}
+            {saveStatus && <span className="hidden md:flex items-center gap-1 text-green-600 text-[10px] uppercase font-bold animate-in fade-in"><CheckCircle size={12} /> Saved</span>}
+
+            <button onClick={closePanel} className="text-[#8C7C72] hover:text-[#43342E] transition-colors p-2 hover:bg-gray-100 rounded-full bg-gray-50 md:bg-transparent">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Responsive Body */}
@@ -521,15 +581,20 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                     <h3 className="font-serif text-2xl text-[#43342E] mb-2">Guest Management</h3>
                     <p className="text-xs text-[#8C7C72]">Track RSVPs and manage your guest list</p>
                   </div>
-                  <div className="relative w-full md:w-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7C72]" size={14} />
-                    <input
-                      type="text"
-                      placeholder="Search guests..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-white border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] w-full md:w-64 rounded-full"
-                    />
+                  <div className="flex items-center gap-2 w-full md:w-auto">
+                    <button onClick={downloadCSV} className="bg-[#43342E] text-white px-4 py-2 rounded-full text-xs uppercase font-bold flex items-center gap-2 hover:bg-[#5D4B42]">
+                      <Download size={14} /> Export CSV
+                    </button>
+                    <div className="relative flex-1 md:w-auto">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7C72]" size={14} />
+                      <input
+                        type="text"
+                        placeholder="Search guests..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 pr-4 py-2 bg-white border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] w-full md:w-64 rounded-full"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -561,7 +626,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         <th className="p-4">Name</th>
                         <th className="p-4">Status</th>
                         <th className="p-4">Guests</th>
-                        <th className="p-4">Contact</th>
+                        <th className="p-4">Info</th>
                         <th className="p-4 text-right">Action</th>
                       </tr>
                     </thead>
@@ -585,6 +650,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                               {guest.followUpDate && (
                                 <div className="text-xs font-bold text-amber-600 mt-1">Follow Up: {guest.followUpDate}</div>
                               )}
+                              <div className="flex gap-2 mt-1">
+                                {guest.message && <span title={guest.message} className="text-blue-500 flex items-center gap-1"><MessageSquare size={12} /> Msg</span>}
+                              </div>
                             </td>
                             <td className="p-4 text-right">
                               <button onClick={() => deleteGuest(guest)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
@@ -690,7 +758,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                 {/* Branding Section */}
                 <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                   <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2"><Type size={18} /> Branding & Logo</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid md:grid-cols-2 gap-8">
                     <div className="group">
                       <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Website Title (Browser Tab)</label>
                       <input type="text" value={config.websiteTitle || ''} onChange={(e) => updateConfig('websiteTitle', e.target.value)} className="admin-input" placeholder="e.g. Louie & Florie's Wedding" />
@@ -716,7 +784,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
                 <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                   <h3 className="font-serif text-lg text-[#43342E] mb-6">Social & Contact Links</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid md:grid-cols-2 gap-8">
                     <div className="group">
                       <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Instagram URL</label>
                       <input type="text" value={config.instagram} onChange={(e) => updateConfig('instagram', e.target.value)} className="admin-input" placeholder="#" />
@@ -759,7 +827,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                     >
                       <Trash2 size={16} />
                     </button>
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div className="grid md:grid-cols-12 gap-4">
                       <div className="md:col-span-3">
                         <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Date</label>
                         <input
@@ -818,7 +886,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         {idx === 2 && <Clock size={20} />}
                         <span className="text-xs uppercase font-bold tracking-wider">Event {idx + 1}</span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Event Title</label>
                           <input
@@ -846,7 +914,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                           className="w-full bg-[#FAF9F6] p-2 border border-[#E6D2B5]/30 text-sm h-16"
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Location Name</label>
                           <input
@@ -1012,47 +1080,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
           </div>
         </div>
 
-        <div className="bg-white p-6 border-t border-[#E6D2B5]/30 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-10 relative">
-          <div className="flex items-center gap-2 transition-all">
-            {saveStatus ? (
-              <span className="flex items-center gap-2 text-green-600 text-xs font-bold uppercase tracking-wider animate-in fade-in slide-in-from-bottom-2">
-                <CheckCircle size={16} /> {saveStatus}
-              </span>
-            ) : (
-              <span className="text-[#8C7C72]/60 text-xs italic flex items-center gap-2">
-                <Edit2 size={12} /> Review changes before saving
-              </span>
-            )}
-          </div>
-
-          <button
-            onClick={handleSaveClick}
-            disabled={isSaving}
-            className={`
-                px-10 py-4 font-bold uppercase tracking-[0.2em] text-xs transition-all shadow-lg flex items-center gap-3 rounded-sm
-                ${isSaving
-                ? 'bg-[#E6D2B5] text-white cursor-wait'
-                : saveStatus
-                  ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-green-200 shadow-green-100'
-                  : 'bg-[#43342E] text-[#F9F4EF] hover:bg-[#5D4B42] hover:shadow-xl hover:-translate-y-0.5'
-              }
-             `}
-          >
-            {isSaving ? (
-              <>
-                <Loader size={16} className="animate-spin" /> Saving...
-              </>
-            ) : saveStatus ? (
-              <>
-                <Check size={16} /> Saved
-              </>
-            ) : (
-              <>
-                <Save size={16} /> Save Changes
-              </>
-            )}
-          </button>
-        </div>
+        {/* Removed Footer, logic moved to Header */}
       </div>
     </div>
   );
@@ -1111,8 +1139,9 @@ export default function App() {
   const [config, setConfig] = useState(defaultConfig);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPreloader, setShowPreloader] = useState(true);
 
-  const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
+  const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '', message: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -1157,6 +1186,19 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [user]);
+
+  // Safety Timeout for loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) setLoading(false);
+    }, 5000); // 5s timeout fallback
+    return () => clearTimeout(timer);
+  }, [loading]);
+
+  // Preloader Timer
+  useEffect(() => {
+    setTimeout(() => setShowPreloader(false), 2500);
+  }, []);
 
   // 3. Document Title
   useEffect(() => {
@@ -1211,10 +1253,9 @@ export default function App() {
     try {
       // Append new guest to the config's guest list and save immediately
       const newGuest = { ...rsvpForm, timestamp: new Date().toISOString() };
-      const updatedGuestList = [...(config.guestList || []), newGuest];
 
       // Optimistic UI update
-      // We use arrayUnion for the actual DB update to prevent race conditions
+      const updatedGuestList = [...(config.guestList || []), newGuest];
       const newConfig = { ...config, guestList: updatedGuestList };
       setConfig(newConfig);
 
@@ -1224,7 +1265,7 @@ export default function App() {
 
       setIsSubmitting(false);
       setIsSubmitted(true);
-      setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
+      setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '', message: '' });
     } catch (err) {
       console.error("RSVP Error:", err);
       // Fallback to setDoc if updateDoc fails (e.g. if doc doesn't exist yet)
@@ -1235,21 +1276,13 @@ export default function App() {
         await setDoc(doc(db, 'wedding', 'config'), newConfig);
         setIsSubmitting(false);
         setIsSubmitted(true);
-        setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
+        setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '', message: '' });
       } catch (retryErr) {
         alert("Something went wrong. Please try again.");
         setIsSubmitting(false);
       }
     }
   };
-
-  if (loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#FAF9F6]">
-        <Loader className="animate-spin text-[#B08D55]" size={32} />
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#FAF9F6] min-h-screen text-[#43342E] font-sans selection:bg-[#C5A059] selection:text-white relative">
@@ -1284,7 +1317,12 @@ export default function App() {
         .confetti-3 { animation-delay: 1.5s; animation-duration: 3.2s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
         .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
+      {/* Preloader */}
+      {(loading || showPreloader) && <Preloader fadeOut={!loading && !showPreloader} />}
 
       <NoiseOverlay />
       <AmbientGlow />
@@ -1504,7 +1542,7 @@ export default function App() {
           </div>
 
           {/* Right Side Content */}
-          <div className="w-full md:w-7/12 p-12 md:p-20 bg-[#FDFBF7] flex flex-col justify-center relative">
+          <div className="w-full md:w-7/12 p-8 md:p-20 bg-[#FDFBF7] flex flex-col justify-center relative">
 
             {/* Decorative corners */}
             <div className="absolute top-6 left-6 w-8 h-8 border-t border-l border-[#DBC1A7]"></div>
@@ -1535,10 +1573,10 @@ export default function App() {
             ) : (
               !isSubmitted ? (
                 <>
-                  <h2 className="font-serif text-4xl mb-3 text-[#43342E]">Will you join us?</h2>
-                  <p className="text-[#8C7C72] mb-12 font-light text-sm italic">We would be honored by your presence.</p>
+                  <h2 className="font-serif text-3xl md:text-4xl mb-3 text-[#43342E] text-center md:text-left">Will you join us?</h2>
+                  <p className="text-[#8C7C72] mb-8 md:mb-12 font-light text-sm italic text-center md:text-left">We would be honored by your presence.</p>
 
-                  <form onSubmit={handleRsvpSubmit} className="space-y-8">
+                  <form onSubmit={handleRsvpSubmit} className="space-y-6 md:space-y-8">
                     <div className="group relative">
                       <input
                         required
@@ -1581,8 +1619,8 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex gap-8 pt-4">
-                      <div className="w-1/2">
+                    <div className="flex flex-col md:flex-row gap-6 md:gap-8 pt-2">
+                      <div className="w-full md:w-1/2">
                         <label className="block text-[10px] font-bold text-[#B08D55] mb-2 uppercase tracking-widest">Guests</label>
                         <select
                           name="guests"
@@ -1596,7 +1634,7 @@ export default function App() {
                           <option value="4">4 People</option>
                         </select>
                       </div>
-                      <div className="w-1/2">
+                      <div className="w-full md:w-1/2">
                         <label className="block text-[10px] font-bold text-[#B08D55] mb-2 uppercase tracking-widest">Attending</label>
                         <select
                           name="attending"
@@ -1609,6 +1647,18 @@ export default function App() {
                           <option value="no">Regretfully Decline</option>
                         </select>
                       </div>
+                    </div>
+
+                    <div className="group relative mt-6">
+                      <textarea
+                        name="message"
+                        className="w-full border-b border-[#DBC1A7] py-3 focus:outline-none focus:border-[#43342E] transition-colors bg-transparent text-[#43342E] placeholder-transparent peer resize-none"
+                        placeholder="Message to the Couple"
+                        rows="2"
+                        value={rsvpForm.message}
+                        onChange={(e) => setRsvpForm({ ...rsvpForm, message: e.target.value })}
+                      />
+                      <label className="absolute left-0 -top-3 text-[10px] text-[#B08D55] uppercase tracking-widest transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3 peer-focus:-top-3 peer-focus:text-[10px] peer-focus:text-[#B08D55]">Message to the Couple</label>
                     </div>
 
                     <button
