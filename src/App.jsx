@@ -1,16 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Calendar, MapPin, Gift, Clock, Music, Menu, X, ChevronDown, Check, Loader, Settings, Upload, Link as LinkIcon, Image as ImageIcon, Edit2, Save, ZoomIn, Camera, RefreshCw, Trash2, Lock, ArrowRight, Plus, ArrowUp, ExternalLink, Users, ClipboardList, Search, AlertCircle, CheckCircle, Type, ShieldAlert } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 /**
- * Modern Wedding Website - V5.2
+ * Modern Wedding Website - V6.6 (Auth Error Handling)
  * Features: 
- * - Customizable Logo (Text/Image) & Website Title
- * - Configurable Admin Passcode & Access Denied Animation
- * - Circular Scroll Progress Button
- * - "Noise" Texture Overlay for Premium Feel
- * - Ambient Background Glows
- * - Animated Mouse Scroll Indicator
+ * - Improved Error Handling for Authentication
+ * - Responsive Admin Panel
+ * - Full Database Integration
  */
+
+// --- 1. PASTE YOUR KEYS HERE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyC9LA_PFA6KZ7s8IlQdJuolA0gaBm8kgNI",
+  authDomain: "simply-louie.firebaseapp.com",
+  projectId: "simply-louie",
+  storageBucket: "simply-louie.firebasestorage.app",
+  messagingSenderId: "822487405638",
+  appId: "1:822487405638:web:078f7f6b9e968f80266647"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Simple path for your data
+const DATA_PATH = 'wedding/config';
 
 // --- Components ---
 
@@ -59,29 +77,9 @@ const CircularScroll = () => {
       className={`fixed bottom-8 right-8 z-50 flex items-center justify-center transition-all duration-500 hover:scale-110 ${show ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
     >
       <div className="relative w-12 h-12 bg-white/80 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center">
-        {/* Progress Ring */}
         <svg className="absolute top-0 left-0 w-full h-full -rotate-90 transform" viewBox="0 0 48 48">
-          <circle
-            className="text-[#E6D2B5]/30"
-            strokeWidth="3"
-            stroke="currentColor"
-            fill="transparent"
-            r={radius}
-            cx="24"
-            cy="24"
-          />
-          <circle
-            className="text-[#B08D55] transition-all duration-100 ease-out"
-            strokeWidth="3"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            stroke="currentColor"
-            fill="transparent"
-            r={radius}
-            cx="24"
-            cy="24"
-          />
+          <circle className="text-[#E6D2B5]/30" strokeWidth="3" stroke="currentColor" fill="transparent" r={radius} cx="24" cy="24" />
+          <circle className="text-[#B08D55] transition-all duration-100 ease-out" strokeWidth="3" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="24" cy="24" />
         </svg>
         <ArrowUp size={18} className="text-[#43342E]" />
       </div>
@@ -131,7 +129,7 @@ const ScrollReveal = ({ children, className = "", variant = "up", delay = 0 }) =
       case 'left': return isVisible ? 'translate-x-0' : '-translate-x-20';
       case 'right': return isVisible ? 'translate-x-0' : 'translate-x-20';
       case 'zoom': return isVisible ? 'scale-100' : 'scale-90';
-      default: return isVisible ? 'translate-y-0' : 'translate-y-20'; // up
+      default: return isVisible ? 'translate-y-0' : 'translate-y-20';
     }
   };
 
@@ -239,8 +237,6 @@ const Navigation = ({ coupleName, logoText, logoImage }) => {
   ];
 
   const initials = coupleName ? coupleName.split('&').map(n => n.trim()[0]).join(' & ') : "L & F";
-
-  // Decide what logo to show: Image > Custom Text > Initials
   const logoContent = logoImage ? (
     <img src={logoImage} alt="Logo" className="h-12 w-auto object-contain" />
   ) : (
@@ -332,24 +328,32 @@ const TimelineItem = ({ date, title, description, side }) => (
 
 // --- Admin Panel ---
 
-const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
+const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, onSave }) => {
   const [activeTab, setActiveTab] = useState('guests');
   const [saveStatus, setSaveStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
   const handleImageChange = (e, key, index = null) => {
     const file = e.target.files[0];
     if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      if (index !== null) {
-        const newGallery = [...config.galleryImages];
-        newGallery[index] = objectUrl;
-        updateConfig('galleryImages', newGallery);
-      } else {
-        updateConfig(key, objectUrl);
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const res = reader.result;
+        // Basic check for size (approx 900KB) to respect Firestore document limits
+        if (res.length > 900000) {
+          alert("Image too large (Max ~1MB). Please compress or use an Image URL.");
+          return;
+        }
+        if (index !== null) {
+          const newGallery = [...config.galleryImages];
+          newGallery[index] = res;
+          updateConfig('galleryImages', newGallery);
+        } else {
+          updateConfig(key, res);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -388,9 +392,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
   };
 
   // --- Guest List Helpers ---
-  const deleteGuest = (index) => {
+  const deleteGuest = (guestToDelete) => {
     if (confirm('Remove this guest?')) {
-      const newGuests = config.guestList.filter((_, i) => i !== index);
+      const newGuests = config.guestList.filter(g => g.timestamp !== guestToDelete.timestamp);
       updateConfig('guestList', newGuests);
     }
   };
@@ -423,16 +427,6 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
     updateConfig('notes', newNotes);
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate network save delay
-    setTimeout(() => {
-      setIsSaving(false);
-      setSaveStatus('Settings Saved Successfully!');
-      setTimeout(() => setSaveStatus(''), 3000);
-    }, 800);
-  }
-
   const handleResetRequest = () => {
     if (resetConfirm) {
       resetConfig();
@@ -443,97 +437,106 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
     }
   };
 
+  // Fixed Save Handler
+  const handleSaveClick = () => {
+    if (onSave) {
+      onSave();
+      setSaveStatus('Saving...');
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[60] bg-[#1F1815]/90 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#FAF9F6] w-full max-w-6xl h-[90vh] rounded-none shadow-2xl flex flex-col overflow-hidden border border-[#E6D2B5]/20 animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[60] bg-[#1F1815]/90 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
+      <div className="bg-[#FAF9F6] w-full max-w-6xl h-full md:h-[90vh] rounded-none md:rounded-lg shadow-2xl flex flex-col overflow-hidden border border-[#E6D2B5]/20 animate-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="bg-white px-8 py-6 border-b border-[#E6D2B5]/30 flex justify-between items-center">
+        <div className="bg-white px-4 md:px-8 py-4 md:py-6 border-b border-[#E6D2B5]/30 flex justify-between items-center shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <Settings size={20} className="text-[#B08D55]" />
-              <h2 className="font-serif text-2xl text-[#43342E]">Website Configuration</h2>
+              <h2 className="font-serif text-xl md:text-2xl text-[#43342E]">Website Configuration</h2>
             </div>
-            <p className="text-xs text-[#8C7C72] uppercase tracking-wider mt-1 pl-7">Admin Dashboard</p>
+            <p className="text-xs text-[#8C7C72] uppercase tracking-wider mt-1 pl-7 hidden md:block">Admin Dashboard (Cloud Connected)</p>
           </div>
           <button onClick={closePanel} className="text-[#8C7C72] hover:text-[#43342E] transition-colors p-2 hover:bg-gray-100 rounded-full">
             <X size={24} />
           </button>
         </div>
 
-        {/* Sidebar + Content */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-[#E6D2B5]/30 flex flex-col py-6 shrink-0">
+        {/* Responsive Body */}
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+
+          {/* Responsive Sidebar (Horizontal Scroll on Mobile) */}
+          <div className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-[#E6D2B5]/30 flex flex-row md:flex-col overflow-x-auto md:overflow-visible shrink-0 no-scrollbar">
             {[
-              { id: 'guests', label: 'Guest List', icon: Users },
-              { id: 'planner', label: 'Planner', icon: ClipboardList },
-              { id: 'general', label: 'General', icon: Settings },
-              { id: 'story', label: 'Our Story', icon: Heart },
-              { id: 'events', label: 'Events', icon: Calendar },
-              { id: 'rsvp', label: 'RSVP Config', icon: Gift },
-              { id: 'images', label: 'Images', icon: ImageIcon }
+              { id: 'guests', label: 'Guest List', shortLabel: 'Guests', icon: Users },
+              { id: 'planner', label: 'Planner', shortLabel: 'Plan', icon: ClipboardList },
+              { id: 'general', label: 'General', shortLabel: 'Gen', icon: Settings },
+              { id: 'story', label: 'Our Story', shortLabel: 'Story', icon: Heart },
+              { id: 'events', label: 'Events', shortLabel: 'Events', icon: Calendar },
+              { id: 'rsvp', label: 'RSVP Config', shortLabel: 'RSVP', icon: Gift },
+              { id: 'images', label: 'Images', shortLabel: 'Imgs', icon: ImageIcon }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-8 py-4 text-left text-xs font-bold uppercase tracking-widest transition-all border-l-4 flex items-center gap-3 ${activeTab === tab.id
+                className={`
+                  px-4 md:px-8 py-3 md:py-4 text-left text-xs font-bold uppercase tracking-widest transition-all 
+                  whitespace-nowrap flex items-center gap-2 md:gap-3
+                  border-b-4 md:border-b-0 md:border-l-4
+                  ${activeTab === tab.id
                     ? 'border-[#B08D55] bg-[#F9F4EF] text-[#43342E]'
-                    : 'border-transparent text-[#8C7C72] hover:bg-gray-50'
-                  }`}
+                    : 'border-transparent text-[#8C7C72] hover:bg-gray-50'}
+                `}
               >
                 <tab.icon size={14} />
-                {tab.label}
+                <span className="hidden md:inline">{tab.label}</span>
+                <span className="md:hidden">{tab.shortLabel}</span>
               </button>
             ))}
 
-            <div className="mt-auto px-8 pb-4">
+            <div className="p-4 md:mt-auto md:px-8 md:pb-4 min-w-[150px] md:min-w-0 flex items-center">
               <button
                 onClick={handleResetRequest}
-                className={`flex items-center gap-2 text-xs uppercase tracking-wider transition-all duration-300 w-full justify-center py-3 rounded-md ${resetConfirm
+                className={`flex items-center gap-2 text-xs uppercase tracking-wider transition-all duration-300 w-full justify-center py-2 md:py-3 rounded-md ${resetConfirm
                     ? 'bg-red-50 text-red-600 font-bold border border-red-200'
                     : 'text-red-300 hover:text-red-500 hover:bg-red-50/50'
                   }`}
               >
-                {resetConfirm ? (
-                  <>
-                    <Trash2 size={14} className="animate-bounce" /> Confirm Reset?
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw size={12} /> Reset Defaults
-                  </>
-                )}
+                {resetConfirm ? <Trash2 size={14} className="animate-bounce" /> : <RefreshCw size={12} />}
+                <span className="hidden md:inline">{resetConfirm ? "Confirm?" : "Reset Defaults"}</span>
+                <span className="md:hidden">{resetConfirm ? "Confirm?" : "Reset"}</span>
               </button>
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 overflow-y-auto p-10 bg-[#FAF9F6]">
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-10 bg-[#FAF9F6]">
 
             {/* --- GUEST LIST TAB --- */}
             {activeTab === 'guests' && (
               <div className="space-y-8 animate-fade-in">
-                <div className="flex justify-between items-end border-b border-[#E6D2B5]/30 pb-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-[#E6D2B5]/30 pb-4 gap-4">
                   <div>
                     <h3 className="font-serif text-2xl text-[#43342E] mb-2">Guest Management</h3>
                     <p className="text-xs text-[#8C7C72]">Track RSVPs and manage your guest list</p>
                   </div>
-                  <div className="relative">
+                  <div className="relative w-full md:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7C72]" size={14} />
                     <input
                       type="text"
                       placeholder="Search guests..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-white border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] w-64 rounded-full"
+                      className="pl-9 pr-4 py-2 bg-white border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] w-full md:w-64 rounded-full"
                     />
                   </div>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded border border-[#E6D2B5]/30 text-center">
-                    <p className="text-[10px] uppercase font-bold text-[#8C7C72] mb-1">Total Responses</p>
+                    <p className="text-[10px] uppercase font-bold text-[#8C7C72] mb-1">Total</p>
                     <p className="font-serif text-3xl text-[#43342E]">{stats.total}</p>
                   </div>
                   <div className="bg-white p-4 rounded border border-green-100 text-center">
@@ -541,7 +544,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                     <p className="font-serif text-3xl text-green-700">{stats.attending}</p>
                   </div>
                   <div className="bg-white p-4 rounded border border-amber-100 text-center">
-                    <p className="text-[10px] uppercase font-bold text-amber-600 mb-1">Still Deciding</p>
+                    <p className="text-[10px] uppercase font-bold text-amber-600 mb-1">Pending</p>
                     <p className="font-serif text-3xl text-amber-700">{stats.pending}</p>
                   </div>
                   <div className="bg-white p-4 rounded border border-red-100 text-center">
@@ -551,8 +554,8 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded border border-[#E6D2B5]/30 overflow-hidden">
-                  <table className="w-full text-left">
+                <div className="bg-white rounded border border-[#E6D2B5]/30 overflow-x-auto">
+                  <table className="w-full text-left min-w-[600px]">
                     <thead className="bg-[#F9F4EF] text-[#B08D55] text-[10px] uppercase tracking-wider font-bold">
                       <tr>
                         <th className="p-4">Name</th>
@@ -584,7 +587,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                               )}
                             </td>
                             <td className="p-4 text-right">
-                              <button onClick={() => deleteGuest(idx)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
+                              <button onClick={() => deleteGuest(guest)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
                             </td>
                           </tr>
                         ))
@@ -604,7 +607,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                     <p className="text-xs text-[#8C7C72]">Keep track of your planning to-dos</p>
                   </div>
                   <button onClick={addNote} className="bg-[#43342E] text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-[#5D4B42]">
-                    <Plus size={14} /> Add Note
+                    <Plus size={14} /> <span className="hidden md:inline">Add Note</span>
                   </button>
                 </div>
 
@@ -613,12 +616,12 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                     <div key={note.id} className={`bg-white p-4 rounded border flex items-start gap-4 transition-all ${note.completed ? 'opacity-60 border-green-100' : 'border-[#E6D2B5]/50'}`}>
                       <button
                         onClick={() => updateNote(note.id, 'completed', !note.completed)}
-                        className={`mt-1 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${note.completed ? 'bg-green-500 border-green-500 text-white' : 'border-[#E6D2B5] text-transparent hover:border-[#B08D55]'}`}
+                        className={`mt-1 w-5 h-5 rounded-full border flex items-center justify-center transition-colors shrink-0 ${note.completed ? 'bg-green-500 border-green-500 text-white' : 'border-[#E6D2B5] text-transparent hover:border-[#B08D55]'}`}
                       >
                         <Check size={12} strokeWidth={3} />
                       </button>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex gap-4">
+                      <div className="flex-1 space-y-2 min-w-0">
+                        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
                           <input
                             type="text"
                             value={note.text}
@@ -629,7 +632,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                             type="date"
                             value={note.date}
                             onChange={(e) => updateNote(note.id, 'date', e.target.value)}
-                            className="text-xs text-[#8C7C72] bg-transparent outline-none text-right"
+                            className="text-xs text-[#8C7C72] bg-transparent outline-none md:text-right"
                           />
                         </div>
                         <textarea
@@ -640,7 +643,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                           rows={1}
                         />
                       </div>
-                      <button onClick={() => deleteNote(note.id)} className="text-gray-300 hover:text-red-400 transition-colors"><X size={16} /></button>
+                      <button onClick={() => deleteNote(note.id)} className="text-gray-300 hover:text-red-400 transition-colors shrink-0"><X size={16} /></button>
                     </div>
                   ))}
                   {(!config.notes || config.notes.length === 0) && (
@@ -655,7 +658,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
             {activeTab === 'general' && (
               <div className="space-y-8 animate-fade-in">
                 <h3 className="font-serif text-lg text-[#43342E] border-b border-[#E6D2B5]/30 pb-2">Core Details</h3>
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="group">
                     <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Couple Names</label>
                     <input type="text" value={config.names} onChange={(e) => updateConfig('names', e.target.value)} className="admin-input" />
@@ -675,7 +678,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                   <div className="group">
                     <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Admin Passcode</label>
                     <input
-                      type="text"
+                      type="password"
                       value={config.passcode}
                       onChange={(e) => updateConfig('passcode', e.target.value)}
                       className="admin-input font-mono"
@@ -687,7 +690,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                 {/* Branding Section */}
                 <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                   <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2"><Type size={18} /> Branding & Logo</h3>
-                  <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="group">
                       <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Website Title (Browser Tab)</label>
                       <input type="text" value={config.websiteTitle || ''} onChange={(e) => updateConfig('websiteTitle', e.target.value)} className="admin-input" placeholder="e.g. Louie & Florie's Wedding" />
@@ -713,7 +716,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
 
                 <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                   <h3 className="font-serif text-lg text-[#43342E] mb-6">Social & Contact Links</h3>
-                  <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="group">
                       <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Instagram URL</label>
                       <input type="text" value={config.instagram} onChange={(e) => updateConfig('instagram', e.target.value)} className="admin-input" placeholder="#" />
@@ -738,11 +741,11 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                   <div className="flex gap-4">
                     <div className="group">
                       <label className="block text-[8px] font-bold text-[#B08D55] uppercase">Title</label>
-                      <input type="text" value={config.storyTitle} onChange={(e) => updateConfig('storyTitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-32" />
+                      <input type="text" value={config.storyTitle} onChange={(e) => updateConfig('storyTitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-24 md:w-32" />
                     </div>
                     <div className="group">
                       <label className="block text-[8px] font-bold text-[#B08D55] uppercase">Subtitle</label>
-                      <input type="text" value={config.storySubtitle} onChange={(e) => updateConfig('storySubtitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-32" />
+                      <input type="text" value={config.storySubtitle} onChange={(e) => updateConfig('storySubtitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-24 md:w-32" />
                     </div>
                   </div>
                 </div>
@@ -756,7 +759,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                     >
                       <Trash2 size={16} />
                     </button>
-                    <div className="grid md:grid-cols-12 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                       <div className="md:col-span-3">
                         <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Date</label>
                         <input
@@ -797,11 +800,11 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                   <div className="flex gap-4">
                     <div className="group">
                       <label className="block text-[8px] font-bold text-[#B08D55] uppercase">Title</label>
-                      <input type="text" value={config.eventsTitle} onChange={(e) => updateConfig('eventsTitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-32" />
+                      <input type="text" value={config.eventsTitle} onChange={(e) => updateConfig('eventsTitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-24 md:w-32" />
                     </div>
                     <div className="group">
                       <label className="block text-[8px] font-bold text-[#B08D55] uppercase">Subtitle</label>
-                      <input type="text" value={config.eventsSubtitle} onChange={(e) => updateConfig('eventsSubtitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-32" />
+                      <input type="text" value={config.eventsSubtitle} onChange={(e) => updateConfig('eventsSubtitle', e.target.value)} className="border-none bg-transparent font-serif text-lg focus:outline-none text-right w-24 md:w-32" />
                     </div>
                   </div>
                 </div>
@@ -815,7 +818,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                         {idx === 2 && <Clock size={20} />}
                         <span className="text-xs uppercase font-bold tracking-wider">Event {idx + 1}</span>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Event Title</label>
                           <input
@@ -843,7 +846,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                           className="w-full bg-[#FAF9F6] p-2 border border-[#E6D2B5]/30 text-sm h-16"
                         />
                       </div>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-1">Location Name</label>
                           <input
@@ -875,7 +878,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                 <h3 className="font-serif text-lg text-[#43342E] border-b border-[#E6D2B5]/30 pb-2">RSVP Settings</h3>
                 <div>
                   <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-4">RSVP Mode Selection</label>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <button
                       onClick={() => updateConfig('rsvpMode', 'form')}
                       className={`py-8 px-6 border flex flex-col items-center justify-center gap-4 transition-all ${config.rsvpMode === 'form'
@@ -978,7 +981,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
                 <div>
                   <h3 className="font-serif text-xl text-[#43342E] mb-6">Gallery Collection</h3>
                   <p className="text-xs text-[#8C7C72] mb-6">Click image to upload, or paste URL below.</p>
-                  <div className="grid grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {config.galleryImages?.map((src, idx) => (
                       <div key={idx} className="space-y-2">
                         <div className="relative group cursor-pointer aspect-square bg-[#E6D2B5]/20 overflow-hidden border border-[#E6D2B5]/50">
@@ -1023,7 +1026,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel }) => {
           </div>
 
           <button
-            onClick={handleSave}
+            onClick={handleSaveClick}
             disabled={isSaving}
             className={`
                 px-10 py-4 font-bold uppercase tracking-[0.2em] text-xs transition-all shadow-lg flex items-center gap-3 rounded-sm
@@ -1074,12 +1077,9 @@ const defaultConfig = {
   contact: "#",
   logoText: "",
   websiteTitle: "",
-  passcode: "admin", // Default passcode
-
-  // NEW: Data storage for Guests and Notes
+  passcode: "admin",
   guestList: [],
   notes: [],
-
   storyTitle: "Our Journey",
   storySubtitle: "Since 2018",
   story: [
@@ -1087,7 +1087,6 @@ const defaultConfig = {
     { date: "December 24, 2022", title: "Building a Home", description: "After a year and a half of adventures, we moved in together. Our first apartment was small, but full of love (and plants)." },
     { date: "August 10, 2024", title: "The Promise", description: "On a sunset hike overlooking the ocean, Louie got down on one knee. It was the easiest question Florie ever had to answer." }
   ],
-
   eventsTitle: "The Celebration",
   eventsSubtitle: "Itinerary",
   events: [
@@ -1095,7 +1094,6 @@ const defaultConfig = {
     { title: "The Ceremony", time: "Saturday, July 4 • 2:00 PM", description: "We exchange vows followed by dinner and dancing under the stars.", location: "St. Thérèse", mapLink: "https://maps.google.com" },
     { title: "Reception", time: "Saturday, July 4 • 6:00 PM", description: "Dinner, dancing, and drinks to celebrate the newlyweds.", location: "Reception Hall", mapLink: "https://maps.google.com" }
   ],
-
   galleryImages: [
     "https://images.unsplash.com/photo-1621621667797-e06afc217fb0?auto=format&fit=crop&w=600&q=90",
     "https://images.unsplash.com/photo-1530023367847-a683933f4172?auto=format&fit=crop&w=600&q=90",
@@ -1109,39 +1107,58 @@ const defaultConfig = {
 };
 
 export default function App() {
-
-  // State: Initialize from LocalStorage or use Defaults
-  const [config, setConfig] = useState(() => {
-    const saved = localStorage.getItem('weddingConfig');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Merge defaults to handle new fields in version updates (Fix for V3.1 crash)
-        return { ...defaultConfig, ...parsed };
-      } catch (e) {
-        return { ...defaultConfig };
-      }
-    }
-    return { ...defaultConfig };
-  });
+  const [user, setUser] = useState(null);
+  const [config, setConfig] = useState(defaultConfig);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [rsvpForm, setRsvpForm] = useState({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
-  const [loginError, setLoginError] = useState(false); // New state for login error
+  const [loginError, setLoginError] = useState(false);
 
-  // Admin State
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [adminPass, setAdminPass] = useState("");
 
-  // Persist changes to LocalStorage whenever config changes
+  // 1. Auth Setup
   useEffect(() => {
-    localStorage.setItem('weddingConfig', JSON.stringify(config));
-  }, [config]);
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          // If a token is provided by environment, use it.
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (error) {
+        console.error("Firebase Auth Error:", error);
+        if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+          alert("Setup Error: Please enable 'Anonymous' sign-in in your Firebase Console (Authentication > Sign-in method).");
+        }
+      }
+    };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
 
-  // Effect to update document title
+  // 2. Data Fetching
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(doc(db, 'wedding', 'config'), (docSnap) => {
+      if (docSnap.exists()) {
+        setConfig({ ...defaultConfig, ...docSnap.data() }); // Merge with defaults to handle new schema updates
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching config:", error);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // 3. Document Title
   useEffect(() => {
     if (config.websiteTitle) {
       document.title = config.websiteTitle;
@@ -1150,18 +1167,30 @@ export default function App() {
     }
   }, [config.websiteTitle, config.names]);
 
+
+  // Update local state (Admin Panel)
   const handleConfigUpdate = (key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleReset = () => {
-    setConfig(defaultConfig);
-    localStorage.removeItem('weddingConfig');
+  // Save Config to Firebase (Admin Panel)
+  const handleSaveToDb = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      await setDoc(doc(db, 'wedding', 'config'), config);
+      // Simulate a small delay for UI feedback
+      setTimeout(() => setIsSaving(false), 500);
+    } catch (e) {
+      console.error("Error saving config:", e);
+      setIsSaving(false);
+      alert("Failed to save. Please try again.");
+    }
   };
 
+  // Login
   const handleLogin = (e) => {
     e.preventDefault();
-    // Check against configured passcode (default is "admin")
     if (adminPass === config.passcode) {
       setShowAdminLogin(false);
       setShowAdminPanel(true);
@@ -1169,28 +1198,58 @@ export default function App() {
       setLoginError(false);
     } else {
       setLoginError(true);
-      // Reset error state after animation plays (0.5s) to allow re-triggering
       setTimeout(() => setLoginError(false), 500);
     }
   };
 
+  // RSVP Submit (Direct DB Write)
   const handleRsvpSubmit = async (e) => {
     e.preventDefault();
+    if (!user) return;
     setIsSubmitting(true);
 
-    // Simulate Submission Delay
-    setTimeout(() => {
-      // ACTUAL SAVE LOGIC: Append new guest to the config
+    try {
+      // Append new guest to the config's guest list and save immediately
       const newGuest = { ...rsvpForm, timestamp: new Date().toISOString() };
       const updatedGuestList = [...(config.guestList || []), newGuest];
 
-      handleConfigUpdate('guestList', updatedGuestList);
+      // Optimistic UI update
+      // We use arrayUnion for the actual DB update to prevent race conditions
+      const newConfig = { ...config, guestList: updatedGuestList };
+      setConfig(newConfig);
+
+      await updateDoc(doc(db, 'wedding', 'config'), {
+        guestList: arrayUnion(newGuest)
+      });
 
       setIsSubmitting(false);
       setIsSubmitted(true);
-      setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' }); // Reset form
-    }, 1500);
+      setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
+    } catch (err) {
+      console.error("RSVP Error:", err);
+      // Fallback to setDoc if updateDoc fails (e.g. if doc doesn't exist yet)
+      try {
+        const newGuest = { ...rsvpForm, timestamp: new Date().toISOString() };
+        const updatedGuestList = [...(config.guestList || []), newGuest];
+        const newConfig = { ...config, guestList: updatedGuestList };
+        await setDoc(doc(db, 'wedding', 'config'), newConfig);
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+        setRsvpForm({ name: '', email: '', guests: '1', attending: 'yes', followUpDate: '' });
+      } catch (retryErr) {
+        alert("Something went wrong. Please try again.");
+        setIsSubmitting(false);
+      }
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#FAF9F6]">
+        <Loader className="animate-spin text-[#B08D55]" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#FAF9F6] min-h-screen text-[#43342E] font-sans selection:bg-[#C5A059] selection:text-white relative">
@@ -1213,6 +1272,7 @@ export default function App() {
         .animate-slow-zoom { animation: slow-zoom 20s infinite alternate ease-in-out; }
         .animate-float { animation: float 3s infinite ease-in-out; }
         .animate-pulse-slow { animation: pulse-slow 6s infinite ease-in-out; }
+        @keyframes pulse-slow { 0%, 100% { opacity: 0.1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } }
         .confetti-piece { position: absolute; width: 8px; height: 16px; background: #ffd300; top: 0; opacity: 0; animation: confetti-fall 3s linear infinite; }
         @keyframes confetti-fall {
           0% { top: -10%; transform: rotate(0deg) translateX(0); opacity: 1; }
@@ -1222,26 +1282,13 @@ export default function App() {
         .confetti-1 { animation-delay: 1s; animation-duration: 3s; }
         .confetti-2 { animation-delay: 0.5s; animation-duration: 2.8s; }
         .confetti-3 { animation-delay: 1.5s; animation-duration: 3.2s; }
-        
-        /* Shake Animation for Denied Access */
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-          20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
         .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
       `}</style>
 
-      {/* Noise Texture Overlay */}
       <NoiseOverlay />
-
-      {/* Ambient Background Glows */}
       <AmbientGlow />
-
-      {/* Circular Scroll Button */}
       <CircularScroll />
-
-      {/* Lightbox Overlay */}
       <Lightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />
 
       {/* Admin Modals */}
@@ -1249,8 +1296,15 @@ export default function App() {
         <AdminPanel
           config={config}
           updateConfig={handleConfigUpdate}
-          resetConfig={handleReset}
+          onSave={handleSaveToDb}
+          resetConfig={() => {
+            if (confirm("Are you sure? This will overwrite the live database with defaults.")) {
+              setConfig(defaultConfig);
+              handleSaveToDb(); // Save defaults to DB
+            }
+          }}
           closePanel={() => setShowAdminPanel(false)}
+          isSaving={isSaving}
         />
       )}
 

@@ -14,5 +14,9 @@ Once you are happy with the changes:
 
 Bash
 
+git add .
+git commit -m "Update website design and admin features"
+git push origin main
+
 npm run build
 npm run deploy
