@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Heart, Calendar, Gift, Settings, Upload, Link as LinkIcon, Image as ImageIcon, Edit2, Save, RefreshCw, Trash2, Users, ClipboardList, Search, AlertCircle, CheckCircle, Type, Download, MessageSquare, Plus, Check, X, Loader, Music, Clock } from 'lucide-react';
+import { Heart, Calendar, Gift, Settings, Upload, Link as LinkIcon, Image as ImageIcon, Edit2, Save, RefreshCw, Trash2, Users, ClipboardList, Search, AlertCircle, CheckCircle, Type, Download, MessageSquare, Plus, Check, X, Loader, Music, Clock, Smartphone, Globe } from 'lucide-react';
 
 const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, onSave }) => {
     const [activeTab, setActiveTab] = useState('guests');
     const [searchTerm, setSearchTerm] = useState('');
     const [resetConfirm, setResetConfirm] = useState(false);
 
-    // 1. Updated Save Handler with Toast
+    // 1. Toast Notification Wrapper
     const handleSaveClick = () => {
         if (onSave) {
             toast.promise(
@@ -28,7 +28,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
             reader.onloadend = () => {
                 const res = reader.result;
                 if (res.length > 900000) {
-                    alert("Image too large (Max ~1MB). Please compress or use an Image URL.");
+                    toast.error("Image too large (Max ~1MB). Please compress it.");
                     return;
                 }
                 if (index !== null) {
@@ -84,7 +84,10 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
     };
 
     const downloadCSV = () => {
-        if (!config.guestList || config.guestList.length === 0) return;
+        if (!config.guestList || config.guestList.length === 0) {
+            toast.error("No guests to export");
+            return;
+        }
         const headers = ['Name', 'Attending', 'Guests', 'Email', 'Message', 'FollowUp Date', 'Timestamp'];
         const csvContent = [
             headers.join(','),
@@ -101,7 +104,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `wedding_guests_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `guest_list_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
     };
 
@@ -143,7 +146,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
     };
 
     return (
-        <div className="fixed inset-0 z-[60] bg-[#1F1815]/90 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
+        <div className="fixed inset-0 z-[60] bg-[#1F1815]/90 backdrop-blur-sm flex items-center justify-center p-0 md:p-4 animate-fade-in">
             <div className="bg-[#FAF9F6] w-full max-w-6xl h-full md:h-[90vh] rounded-none md:rounded-lg shadow-2xl flex flex-col overflow-hidden border border-[#E6D2B5]/20 animate-in zoom-in-95 duration-300">
 
                 {/* Header */}
@@ -374,6 +377,50 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                                     </div>
                                 </div>
 
+                                {/* Browser & Device Styling Section (NEW) */}
+                                <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
+                                    <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2"><Globe size={18} /> Browser & Device Styling</h3>
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        {/* Favicon Input */}
+                                        <div className="group">
+                                            <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Favicon Icon (Tab Icon)</label>
+                                            <div className="flex gap-4 items-center">
+                                                <div className="w-10 h-10 border border-[#E6D2B5] p-1 flex items-center justify-center bg-gray-50 shrink-0">
+                                                    {config.faviconUrl ? <img src={config.faviconUrl} className="max-w-full max-h-full" alt="Favicon" /> : <span className="text-[8px] text-gray-400">None</span>}
+                                                </div>
+                                                <div className="flex-1 space-y-2">
+                                                    <label className="cursor-pointer bg-white border border-[#E6D2B5] px-3 py-2 text-[10px] uppercase font-bold hover:bg-[#FAF9F6] flex items-center justify-center gap-2 w-full md:w-fit transition-colors">
+                                                        <Upload size={12} /> Upload Icon
+                                                        <input type="file" className="hidden" accept="image/png,image/x-icon,image/jpeg" onChange={(e) => handleImageChange(e, 'faviconUrl')} />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <input type="text" value={config.faviconUrl || ''} onChange={(e) => updateConfig('faviconUrl', e.target.value)} className="admin-input mt-2 text-xs" placeholder="Or paste image URL..." />
+                                        </div>
+
+                                        {/* Theme Color Input */}
+                                        <div className="group">
+                                            <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2 flex items-center gap-2"><Smartphone size={12} /> Mobile Theme Color</label>
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="color"
+                                                    value={config.themeColor || '#FAF9F6'}
+                                                    onChange={(e) => updateConfig('themeColor', e.target.value)}
+                                                    className="w-10 h-10 p-1 bg-white border border-[#E6D2B5] cursor-pointer"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={config.themeColor || '#FAF9F6'}
+                                                    onChange={(e) => updateConfig('themeColor', e.target.value)}
+                                                    className="admin-input uppercase font-mono"
+                                                    maxLength={7}
+                                                />
+                                            </div>
+                                            <p className="text-[9px] text-[#8C7C72] mt-2 leading-tight">Controls the color of the browser address bar on mobile devices.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Branding Section */}
                                 <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                                     <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2"><Type size={18} /> Branding & Logo</h3>
@@ -391,7 +438,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                                             <div className="flex gap-4 items-center">
                                                 {config.logoImage && <img src={config.logoImage} alt="Logo Preview" className="h-10 w-auto border border-[#E6D2B5] p-1" />}
                                                 <div className="flex-1">
-                                                    <label className="cursor-pointer bg-white border border-[#E6D2B5] text-[#43342E] px-4 py-2 text-xs uppercase font-bold hover:bg-[#FAF9F6] flex items-center justify-center gap-2">
+                                                    <label className="cursor-pointer bg-white border border-[#E6D2B5] text-[#43342E] px-4 py-2 text-xs uppercase font-bold hover:bg-[#FAF9F6] flex items-center justify-center gap-2 w-fit">
                                                         <Upload size={14} /> Upload Logo Image
                                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageChange(e, 'logoImage')} />
                                                     </label>
@@ -569,8 +616,8 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                                         <button
                                             onClick={() => updateConfig('rsvpMode', 'form')}
                                             className={`py-8 px-6 border flex flex-col items-center justify-center gap-4 transition-all ${config.rsvpMode === 'form'
-                                                    ? 'border-[#43342E] bg-white text-[#43342E] shadow-lg scale-105'
-                                                    : 'border-[#E6D2B5] bg-transparent text-[#8C7C72] hover:bg-white'
+                                                ? 'border-[#43342E] bg-white text-[#43342E] shadow-lg scale-105'
+                                                : 'border-[#E6D2B5] bg-transparent text-[#8C7C72] hover:bg-white'
                                                 }`}
                                         >
                                             <Edit2 size={28} strokeWidth={1.5} />
@@ -579,8 +626,8 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                                         <button
                                             onClick={() => updateConfig('rsvpMode', 'link')}
                                             className={`py-8 px-6 border flex flex-col items-center justify-center gap-4 transition-all ${config.rsvpMode === 'link'
-                                                    ? 'border-[#43342E] bg-white text-[#43342E] shadow-lg scale-105'
-                                                    : 'border-[#E6D2B5] bg-transparent text-[#8C7C72] hover:bg-white'
+                                                ? 'border-[#43342E] bg-white text-[#43342E] shadow-lg scale-105'
+                                                : 'border-[#E6D2B5] bg-transparent text-[#8C7C72] hover:bg-white'
                                                 }`}
                                         >
                                             <LinkIcon size={28} strokeWidth={1.5} />
