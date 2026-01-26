@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
