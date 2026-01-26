@@ -1,8 +1,21 @@
-import React from 'react';
-import { Plus, Trash2, Music, Heart, Clock, ImageIcon, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Trash2, Music, Heart, Clock, ImageIcon, Upload, MapPin, Wine, Utensils, Camera, PartyPopper, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const ICON_OPTIONS = [
+    { value: 'music', label: 'Music', icon: Music },
+    { value: 'heart', label: 'Heart', icon: Heart },
+    { value: 'clock', label: 'Clock', icon: Clock },
+    { value: 'location', label: 'Location', icon: MapPin },
+    { value: 'wine', label: 'Wine', icon: Wine },
+    { value: 'utensils', label: 'Food', icon: Utensils },
+    { value: 'camera', label: 'Photo', icon: Camera },
+    { value: 'party', label: 'Party', icon: PartyPopper },
+];
+
 const EventsTab = ({ config, updateConfig, updateEvent, processImage }) => {
+    const [openIconDropdown, setOpenIconDropdown] = useState(null);
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div className="flex justify-between items-center border-b border-[#E6D2B5]/30 pb-2">
@@ -23,7 +36,8 @@ const EventsTab = ({ config, updateConfig, updateEvent, processImage }) => {
                                 time: "Date & Time",
                                 description: "Event description.",
                                 location: "Location Name",
-                                mapLink: "https://maps.google.com"
+                                mapLink: "https://maps.google.com",
+                                icon: 'location'
                             }];
                             updateConfig('events', newEvents);
                         }}
@@ -51,39 +65,72 @@ const EventsTab = ({ config, updateConfig, updateEvent, processImage }) => {
                                 <Trash2 size={16} />
                             </button>
                         </div>
-                        <div className="flex items-center gap-3 mb-4 text-[#B08D55] justify-between">
-                            <div className="flex items-center gap-3">
-                                {idx === 0 && <Music size={20} />}
-                                {idx === 1 && <Heart size={20} />}
-                                {idx === 2 && <Clock size={20} />}
-                                <span className="text-xs uppercase font-bold tracking-wider">Event {idx + 1}</span>
+
+                        {/* Header with Icon Selector */}
+                        <div className="flex items-center gap-4 mb-6 relative z-20">
+                            <div className="relative">
+                                <button
+                                    onClick={() => setOpenIconDropdown(openIconDropdown === idx ? null : idx)}
+                                    className="w-10 h-10 rounded-full bg-[#FAF9F6] border border-[#E6D2B5] flex items-center justify-center text-[#B08D55] shadow-sm hover:bg-[#E6D2B5] hover:text-white transition-colors"
+                                    title="Change Icon"
+                                >
+                                    {(() => {
+                                        const SelectedIcon = ICON_OPTIONS.find(opt => opt.value === event.icon)?.icon || MapPin;
+                                        return <SelectedIcon size={20} />;
+                                    })()}
+                                </button>
+
+                                {/* Click-based Dropdown */}
+                                {openIconDropdown === idx && (
+                                    <div className="absolute top-full left-0 mt-2 bg-white border border-[#E6D2B5]/50 rounded-lg shadow-xl p-2 w-48 z-50 grid grid-cols-4 gap-2 animate-in zoom-in-95 duration-200">
+                                        {ICON_OPTIONS.map(opt => (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => {
+                                                    updateEvent(idx, 'icon', opt.value);
+                                                    setOpenIconDropdown(null);
+                                                }}
+                                                className={`p-2 rounded hover:bg-[#F9F4EF] flex items-center justify-center transition-colors ${event.icon === opt.value ? 'bg-[#E6D2B5] text-white' : 'text-[#8C7C72]'}`}
+                                                title={opt.label}
+                                            >
+                                                <opt.icon size={16} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <label className="cursor-pointer text-xs text-[#8C7C72] hover:text-[#B08D55] flex items-center gap-2">
-                                <ImageIcon size={14} /> Change Image
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={async (e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            const processed = await processImage(file);
-                                            if (processed.length > 1000000) {
-                                                toast.error("Image is too large for the database.");
-                                                return;
-                                            }
-                                            const newEvents = [...config.events];
-                                            newEvents[idx] = { ...event, image: processed };
-                                            updateConfig('events', newEvents);
-                                            toast.success("Event image updated!");
-                                        }
-                                    }}
-                                />
-                            </label>
+
+                            <div className="flex-1">
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-xs uppercase font-bold tracking-wider text-[#B08D55]">Event {idx + 1}</span>
+                                    <label className="cursor-pointer text-[10px] text-[#8C7C72] hover:text-[#B08D55] flex items-center gap-1 bg-[#FAF9F6] px-2 py-1 rounded border border-[#E6D2B5]/20 hover:border-[#E6D2B5]">
+                                        <ImageIcon size={12} /> Change Photo
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    const processed = await processImage(file);
+                                                    if (processed.length > 1000000) {
+                                                        toast.error("Image too large");
+                                                        return;
+                                                    }
+                                                    const newEvents = [...config.events];
+                                                    newEvents[idx] = { ...event, image: processed };
+                                                    updateConfig('events', newEvents);
+                                                    toast.success("Image updated!");
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Image Preview */}
-                        <div className="w-full h-32 bg-[#FAF9F6] border border-[#E6D2B5]/30 rounded mb-4 overflow-hidden relative group/img">
+                        <div className="w-full h-32 bg-[#FAF9F6] border border-[#E6D2B5]/30 rounded mb-4 overflow-hidden relative group/img z-10">
                             {event.image ? (
                                 <img src={event.image} alt="Event Context" className="w-full h-full object-cover" />
                             ) : (
