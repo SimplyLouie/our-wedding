@@ -44,9 +44,9 @@ export const defaultConfig = {
         { time: "9:00 PM", title: "Party Time", description: "Open dance floor and music under the stars!", icon: "music" }
     ],
     events: [
-        { title: "Welcome Party", time: "Friday, July 3 • 6:00 PM", description: "Join us for cocktails and hors d'oeuvres to kick off the celebration.", location: "The Gardens", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1558636508-e0db3836bd1b?auto=format&fit=crop&w=800&q=80" },
-        { title: "The Ceremony", time: "Saturday, July 4 • 2:00 PM", description: "We exchange vows followed by dinner and dancing under the stars.", location: "St. Thérèse", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1548624298-967faff0d3b4?auto=format&fit=crop&w=800&q=80" },
-        { title: "Reception", time: "Saturday, July 4 • 6:00 PM", description: "Dinner, dancing, and drinks to celebrate the newlyweds.", location: "Reception Hall", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80" }
+        { title: "Welcome Party", time: "Friday, July 3 • 6:00 PM", description: "Join us for cocktails and hors d'oeuvres to kick off the celebration.", location: "The Gardens", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1558636508-e0db3836bd1b?auto=format&fit=crop&w=800&q=80", icon: "wine" },
+        { title: "The Ceremony", time: "Saturday, July 4 • 2:00 PM", description: "We exchange vows followed by dinner and dancing under the stars.", location: "St. Thérèse", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1548624298-967faff0d3b4?auto=format&fit=crop&w=800&q=80", icon: "heart" },
+        { title: "Reception", time: "Saturday, July 4 • 6:00 PM", description: "Dinner, dancing, and drinks to celebrate the newlyweds.", location: "Reception Hall", mapLink: "https://maps.google.com", image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", icon: "music" }
     ],
     entourageTitle: "The Entourage",
     entourageSubtitle: "Wedding Party",
