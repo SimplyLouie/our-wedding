@@ -137,18 +137,33 @@ export default function App() {
   };
 
   const handleSaveToDb = async (newConfig) => {
-    if (!user) return;
+    // Explicitly check for user to prevent accidental unauthenticated calls
+    if (!auth.currentUser) {
+      console.warn("Save attempted without authentication");
+      return Promise.reject(new Error("Unauthorized"));
+    }
+
     const configToSave = newConfig || config;
     setIsSaving(true);
-    return setDoc(doc(db, 'wedding', 'config'), configToSave)
-      .then(() => {
-        setIsSaving(false);
-      })
-      .catch((e) => {
-        console.error("Error saving config:", e);
-        setIsSaving(false);
-        throw e;
-      });
+
+    console.log("Saving to Firestore:", configToSave);
+
+    try {
+      await setDoc(doc(db, 'wedding', 'config'), configToSave);
+      console.log("Firestore Save Successful!");
+      setIsSaving(false);
+    } catch (e) {
+      console.error("Error saving config to Firestore:", e);
+      setIsSaving(false);
+      throw e;
+    }
+  };
+
+  const handleResetToLocal = () => {
+    if (confirm("This will overwrite the LIVE database with the local defaultConfig.js settings. Continue?")) {
+      setConfig(defaultConfig);
+      handleSaveToDb(defaultConfig); // Pass explicitly to avoid async state delay
+    }
   };
 
   const handleLogin = (password) => {
@@ -277,12 +292,7 @@ export default function App() {
           config={config}
           updateConfig={handleConfigUpdate}
           onSave={handleSaveToDb}
-          resetConfig={() => {
-            if (confirm("Are you sure? This will overwrite the live database with defaults.")) {
-              setConfig(defaultConfig);
-              handleSaveToDb();
-            }
-          }}
+          resetConfig={handleResetToLocal}
           closePanel={() => setShowAdminPanel(false)}
           isSaving={isSaving}
         />
