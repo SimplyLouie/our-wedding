@@ -17,16 +17,6 @@ export const AmbientGlow = () => (
     </div>
 );
 
-export const Preloader = ({ fadeOut }) => (
-    <div className={`fixed inset-0 z-[9999] bg-[#FAF9F6] flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
-        <div className="text-center relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#E6D2B5]/20 to-transparent blur-xl animate-pulse"></div>
-            <h1 className="font-script text-6xl md:text-8xl text-[#43342E] mb-6 animate-pulse-slow relative z-10">L & F</h1>
-            <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[#B08D55] to-transparent mx-auto mb-6"></div>
-            <p className="text-[10px] uppercase tracking-[0.5em] text-[#B08D55] animate-fade-in-up">Loading Love...</p>
-        </div>
-    </div>
-);
 
 export const CircularScroll = () => {
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -198,90 +188,171 @@ export const Countdown = ({ targetDate }) => {
 export const Navigation = ({ coupleName, logoText, logoImage }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [activeSection, setActiveSection] = useState('home');
+
+    const navLinks = [
+        { name: 'Home', id: 'home', href: '#home' },
+        { name: 'Our Story', id: 'story', href: '#story' },
+        { name: 'Timeline', id: 'timeline', href: '#timeline' },
+        { name: 'Palette', id: 'color-palette', href: '#color-palette' },
+        { name: 'Entourage', id: 'entourage', href: '#entourage' },
+        { name: 'Gallery', id: 'gallery', href: '#gallery' },
+        { name: 'Events', id: 'events', href: '#events' },
+        { name: 'RSVP', id: 'rsvp', href: '#rsvp' },
+    ];
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
         };
+
+        // Scroll Spy Logic
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setActiveSection(entry.target.id);
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        navLinks.forEach(link => {
+            const el = document.getElementById(link.id);
+            if (el) observer.observe(el);
+        });
+
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            observer.disconnect();
+        };
     }, []);
 
-    const navLinks = [
-        { name: 'Home', href: '#home' },
-        { name: 'Our Story', href: '#story' },
-        { name: 'Events', href: '#events' },
-        { name: 'Gallery', href: '#gallery' },
-        { name: 'RSVP', href: '#rsvp' },
-    ];
-
     const initials = coupleName ? coupleName.split('&').map(n => n.trim()[0]).join(' & ') : "L & F";
-    const logoContent = logoImage ? (
-        <img src={logoImage} alt="Logo" className="h-12 w-auto object-contain" />
+    const logoContent = (logoImage && logoImage.length > 10) ? (
+        <img src={logoImage} alt="Logo" className="h-10 md:h-12 w-auto object-contain transition-transform duration-500" />
     ) : (
-        logoText || initials
+        <span className="font-script italic tracking-widest">{logoText || initials}</span>
     );
 
     const handleNavClick = (e, href) => {
         e.preventDefault();
         setIsOpen(false);
-        const element = document.querySelector(href);
+        const id = href.replace('#', '');
+        const element = document.getElementById(id);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+            const offset = 80; // Navbar height
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
         }
     };
 
     return (
-        <nav className={`fixed w-full z-40 transition-all duration-500 ease-in-out ${isScrolled ? 'bg-[#FDFBF7]/90 backdrop-blur-md shadow-sm py-3 border-b border-[#E6D2B5]/20' : 'bg-transparent py-4 md:py-6'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-12">
-                    <div className="flex-shrink-0 flex items-center">
-                        <a href="#home" onClick={(e) => handleNavClick(e, '#home')} className={`font-script text-3xl font-medium tracking-wide transition-all duration-500 hover:opacity-80 flex items-center ${isScrolled ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#B08D55] to-[#8A6E4B] scale-90 origin-left' : 'text-[#F9F4EF] scale-100'}`}>
-                            {logoContent}
-                        </a>
-                    </div>
+        <>
+            <nav className={`fixed w-full z-40 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${isScrolled ? 'bg-[#FDFBF7]/80 backdrop-blur-xl shadow-lg border-b border-[#E6D2B5]/20 py-2 md:py-3' : 'bg-transparent py-6 md:py-8'}`}>
+                <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
+                    <div className="flex justify-between items-center h-12">
+                        {/* Logo Area */}
+                        <div className="flex-shrink-0 flex items-center overflow-hidden">
+                            <a
+                                href="#home"
+                                onClick={(e) => handleNavClick(e, '#home')}
+                                className={`text-2xl md:text-3xl font-medium transition-all duration-700 hover:scale-105 flex items-center ${isScrolled ? 'text-[#43342E]' : 'text-[#F9F4EF]'}`}
+                            >
+                                <div className={`transition-all duration-700 flex items-center gap-3 ${isScrolled ? 'translate-y-0 scale-90' : 'translate-y-0 scale-100'}`}>
+                                    {logoContent}
+                                </div>
+                            </a>
+                        </div>
 
-                    <div className="hidden md:flex space-x-10">
-                        {navLinks.map((link) => (
+                        {/* Desktop Links */}
+                        <div className="hidden md:flex items-center space-x-12">
+                            {navLinks.map((link) => (
+                                <a
+                                    key={link.name}
+                                    href={link.href}
+                                    onClick={(e) => handleNavClick(e, link.href)}
+                                    className={`text-[10px] md:text-[11px] uppercase tracking-[0.3em] font-bold transition-all duration-500 relative group py-2 
+                                        ${isScrolled
+                                            ? activeSection === link.id ? 'text-[#B08D55]' : 'text-[#5D4B42]/70 hover:text-[#43342E]'
+                                            : activeSection === link.id ? 'text-[#F9F4EF]' : 'text-[#F9F4EF]/60 hover:text-white'
+                                        }`}
+                                >
+                                    <span className="relative z-10">{link.name}</span>
+                                    <span className={`absolute bottom-0 left-0 h-[2px] bg-[#B08D55] transition-all duration-500 rounded-full 
+                                        ${activeSection === link.id ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-8 group-hover:opacity-100'}`}
+                                    />
+                                </a>
+                            ))}
+                        </div>
+
+                        {/* Mobile Toggle */}
+                        <div className="md:hidden flex items-center">
+                            <button
+                                onClick={() => setIsOpen(!isOpen)}
+                                className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-500 bg-white/10 backdrop-blur-md border border-white/20
+                                    ${isScrolled ? 'text-[#43342E] shadow-sm' : 'text-[#F9F4EF]'}`}
+                            >
+                                {isOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Premium Mobile Overlay */}
+            <div className={`fixed inset-0 z-[60] bg-[#FAF9F6] transition-all duration-700 ease-[cubic-bezier(0.7,0,0.3,1)] md:hidden flex flex-col items-center justify-center ${isOpen ? 'translate-y-0' : 'translate-y-[-100%]'}`}>
+                {/* Close Button Inside Overlay */}
+                <button
+                    onClick={() => setIsOpen(false)}
+                    className="absolute top-8 right-8 text-[#43342E] p-2 hover:bg-[#E6D2B5]/10 rounded-full transition-colors"
+                >
+                    <X size={32} strokeWidth={1} />
+                </button>
+
+                <div className="text-center px-8 w-full max-w-sm">
+                    <div className="font-script text-5xl text-[#B08D55] mb-12 opacity-50 italic">L & F</div>
+                    <div className="space-y-1">
+                        {navLinks.map((link, idx) => (
                             <a
                                 key={link.name}
                                 href={link.href}
                                 onClick={(e) => handleNavClick(e, link.href)}
-                                className={`text-[11px] uppercase tracking-[0.25em] font-medium hover:text-[#C5A059] transition-colors relative group ${isScrolled ? 'text-[#5D4B42]' : 'text-[#F9F4EF]/90'}`}
+                                className={`block py-3 text-[#43342E] transition-all duration-700 transform flex items-center justify-center gap-6 group
+                                    ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+                                style={{ transitionDelay: `${idx * 100}ms` }}
                             >
-                                {link.name}
-                                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[#C5A059] transition-all duration-300 group-hover:w-full"></span>
+                                <div className={`w-1.5 h-1.5 rounded-full bg-[#B08D55] transition-all duration-500 scale-0 group-hover:scale-100 ${activeSection === link.id ? 'scale-100' : ''}`} />
+                                <span className={`font-serif text-3xl italic tracking-tight transition-all duration-500 ${activeSection === link.id ? 'text-[#B08D55] scale-110' : 'group-hover:translate-x-2'}`}>
+                                    {link.name}
+                                </span>
+                                <div className={`w-1.5 h-1.5 rounded-full bg-[#B08D55] transition-all duration-500 scale-0 group-hover:scale-100 ${activeSection === link.id ? 'scale-100' : ''}`} />
                             </a>
                         ))}
                     </div>
 
-                    <div className="md:hidden">
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className={`p-2 rounded-md transition-colors ${isScrolled ? 'text-[#43342E]' : 'text-[#F9F4EF]'}`}
-                        >
-                            {isOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
+                    <div className="mt-12 w-12 h-[1px] bg-[#E6D2B5] mx-auto opacity-50" />
+                    <p className="mt-6 text-[10px] text-[#B08D55] uppercase tracking-[0.4em] italic opacity-40">Join Our Celebration</p>
                 </div>
-            </div>
 
-            <div className={`md:hidden absolute w-full bg-[#FDFBF7]/95 backdrop-blur-xl shadow-xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="px-4 pt-4 pb-6 space-y-2 text-center">
-                    {navLinks.map((link, idx) => (
-                        <a
-                            key={link.name}
-                            href={link.href}
-                            onClick={(e) => handleNavClick(e, link.href)}
-                            style={{ transitionDelay: `${idx * 50}ms` }}
-                            className={`block px-3 py-3 text-[#5D4B42] hover:text-[#C5A059] hover:bg-[#FAF9F6] rounded-sm font-serif text-xl italic transition-all duration-300 transform ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
-                        >
-                            {link.name}
-                        </a>
-                    ))}
-                </div>
+                {/* Aesthetic Background Elements for Mobile Menu */}
+                <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-[#B08D55]/5 rounded-full blur-[80px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-[#E6D2B5]/10 rounded-full blur-[80px]" />
             </div>
-        </nav>
+        </>
     );
 };
 
