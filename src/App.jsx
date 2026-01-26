@@ -22,6 +22,9 @@ import GallerySection from './components/sections/GallerySection';
 import RsvpSection from './components/sections/RsvpSection';
 import RegistrySection from './components/sections/RegistrySection';
 import MapSection from './components/sections/MapSection';
+import GuestbookSection from './components/sections/GuestbookSection';
+import WeatherSection from './components/sections/WeatherSection';
+import FaqSection from './components/sections/FaqSection';
 
 import {
   NoiseOverlay, AmbientGlow, CircularScroll,
@@ -261,6 +264,41 @@ export default function App() {
     }
   };
 
+  const handleAddGuestbookMessage = async (message) => {
+    try {
+      // Optimistic update
+      const updatedMessages = [...(config.guestbookMessages || []), message];
+      setConfig(prev => ({ ...prev, guestbookMessages: updatedMessages }));
+
+      // Save to Firebase
+      await updateDoc(doc(db, 'wedding', 'config'), {
+        guestbookMessages: arrayUnion(message)
+      });
+    } catch (err) {
+      console.error("Guestbook submission error:", err);
+      throw err;
+    }
+  };
+
+  const handleUpdateGuestbookMessage = async (updatedMsg) => {
+    try {
+      const newMessages = (config.guestbookMessages || []).map(msg =>
+        msg.id === updatedMsg.id ? updatedMsg : msg
+      );
+
+      // Update local state
+      setConfig(prev => ({ ...prev, guestbookMessages: newMessages }));
+
+      // Save full list to Firebase (since updating nested arrays is complex in Firestore)
+      await updateDoc(doc(db, 'wedding', 'config'), {
+        guestbookMessages: newMessages
+      });
+    } catch (err) {
+      console.error("Guestbook update error:", err);
+      throw err;
+    }
+  };
+
   const handleScrollClick = (e) => {
     e.preventDefault();
     document.querySelector('#story')?.scrollIntoView({ behavior: 'smooth' });
@@ -340,9 +378,7 @@ export default function App() {
 
       <div className={`transition-all duration-1000 ${appStarted ? 'opacity-100' : 'opacity-0 scale-95 origin-center'}`}>
         <Navigation
-          coupleName={config.names}
-          logoText={config.logoText}
-          logoImage={config.logoImage}
+          config={config}
           sectionOrder={config.sectionOrder || defaultConfig.sectionOrder}
         />
 
@@ -357,6 +393,10 @@ export default function App() {
               return <StorySection key="story" config={config} />;
             case 'timeline':
               return <TimelineSection key="timeline" config={config} />;
+            case 'weather':
+              return <WeatherSection key="weather" config={config} />;
+            case 'faq':
+              return <FaqSection key="faq" config={config} />;
             case 'palette':
               return <ColorPaletteSection key="palette" config={config} />;
             case 'entourage':
@@ -382,6 +422,15 @@ export default function App() {
               return <RegistrySection key="registry" config={config} />;
             case 'map':
               return <MapSection key="map" config={config} />;
+            case 'guestbook':
+              return (
+                <GuestbookSection
+                  key="guestbook"
+                  config={config}
+                  onAddMessage={handleAddGuestbookMessage}
+                  onUpdateMessage={handleUpdateGuestbookMessage}
+                />
+              );
             default:
               return null;
           }

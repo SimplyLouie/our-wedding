@@ -128,6 +128,32 @@ const PaletteTab = ({
                     <span className="text-xs font-bold uppercase tracking-widest">Add Color</span>
                 </button>
             </div>
+
+            {/* Dress Code Management */}
+            <div className="bg-[#FAF9F6] p-6 rounded-lg border border-[#E6D2B5] space-y-4">
+                <h4 className="font-serif text-lg text-[#43342E] mb-2">Attire Details</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-[#B08D55] uppercase">Dress Code Title</label>
+                        <input
+                            type="text"
+                            value={config.dressCode || ''}
+                            onChange={(e) => updateConfig('dressCode', e.target.value)}
+                            className="w-full bg-white p-2 border border-[#E6D2B5]/30 text-sm"
+                            placeholder="e.g. Semi-Formal Attire"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-[#B08D55] uppercase">Description</label>
+                        <textarea
+                            value={config.dressCodeDescription || ''}
+                            onChange={(e) => updateConfig('dressCodeDescription', e.target.value)}
+                            className="w-full bg-white p-2 border border-[#E6D2B5]/30 text-sm min-h-[80px]"
+                            placeholder="Brief instruction for your guests"
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

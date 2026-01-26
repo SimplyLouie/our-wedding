@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ArrowUp } from 'lucide-react';
+import { Menu, X, ArrowUp, ChevronDown } from 'lucide-react';
 
 export const NoiseOverlay = () => (
     <div
@@ -185,7 +185,17 @@ export const Countdown = ({ targetDate }) => {
     );
 };
 
-export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] }) => {
+export const Navigation = ({ config = {}, sectionOrder = [] }) => {
+    const {
+        coupleName,
+        logoText,
+        logoImage,
+        navMaxLinks = 6,
+        navGlassmorphism = true,
+        navLogoHeight = 48,
+        navTransparentInitial = true
+    } = config;
+
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeSection, setActiveSection] = useState('home');
@@ -200,6 +210,59 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
                 href: section.id === 'palette' ? '#color-palette' : `#${section.id}`
             }))
     ];
+
+    const MAX_VISIBLE_LINKS = navMaxLinks;
+    const shouldShowDropdown = navLinks.length > MAX_VISIBLE_LINKS;
+    const visibleLinks = shouldShowDropdown ? navLinks.slice(0, MAX_VISIBLE_LINKS) : navLinks;
+    const dropdownLinks = shouldShowDropdown ? navLinks.slice(MAX_VISIBLE_LINKS) : [];
+
+    const DropdownMenu = ({ items }) => {
+        const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+        const dropdownRef = useRef(null);
+
+        useEffect(() => {
+            const handleClickOutside = (event) => {
+                if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                    setIsDropdownOpen(false);
+                }
+            };
+            document.addEventListener("mousedown", handleClickOutside);
+            return () => document.removeEventListener("mousedown", handleClickOutside);
+        }, []);
+
+        return (
+            <div className="relative" ref={dropdownRef}>
+                <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`flex items-center gap-1 text-[10px] md:text-[11px] uppercase tracking-[0.3em] font-bold transition-all duration-500 py-2 
+                        ${isScrolled || !navTransparentInitial
+                            ? 'text-[#5D4B42]/70 hover:text-[#43342E]'
+                            : 'text-[#F9F4EF]/60 hover:text-white'
+                        }`}
+                >
+                    More <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <div className={`absolute right-0 mt-2 py-2 w-48 bg-white/95 backdrop-blur-md rounded-lg shadow-xl border border-[#E6D2B5]/20 transition-all duration-300 transform origin-top-right
+                    ${isDropdownOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                    {items.map((link) => (
+                        <a
+                            key={link.id}
+                            href={link.href}
+                            onClick={(e) => {
+                                handleNavClick(e, link.href);
+                                setIsDropdownOpen(false);
+                            }}
+                            className={`block px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold transition-colors
+                                ${activeSection === link.id ? 'text-[#B08D55] bg-[#F9F4EF]/50' : 'text-[#5D4B42] hover:bg-[#F9F4EF]/30'}`}
+                        >
+                            {link.name}
+                        </a>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -236,7 +299,7 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
 
     const initials = coupleName ? coupleName.split('&').map(n => n.trim()[0]).join(' & ') : "L & F";
     const logoContent = (logoImage && logoImage.length > 10) ? (
-        <img src={logoImage} alt="Logo" className="h-10 md:h-12 w-auto object-contain transition-transform duration-500" />
+        <img src={logoImage} alt="Logo" style={{ height: `${navLogoHeight}px` }} className="w-auto object-contain transition-transform duration-500" />
     ) : (
         <span className="font-script italic tracking-widest">{logoText || initials}</span>
     );
@@ -260,9 +323,13 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
         }
     };
 
+    const navBgClass = (isScrolled || !navTransparentInitial)
+        ? `bg-[#FDFBF7]/${navGlassmorphism ? '80 backdrop-blur-xl' : '100'} shadow-lg border-b border-[#E6D2B5]/20 py-2 md:py-3`
+        : 'bg-transparent py-6 md:py-8';
+
     return (
         <>
-            <nav className={`fixed w-full z-40 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${isScrolled ? 'bg-[#FDFBF7]/80 backdrop-blur-xl shadow-lg border-b border-[#E6D2B5]/20 py-2 md:py-3' : 'bg-transparent py-6 md:py-8'}`}>
+            <nav className={`fixed w-full z-40 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${navBgClass}`}>
                 <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
                     <div className="flex justify-between items-center h-12">
                         {/* Logo Area */}
@@ -270,23 +337,23 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
                             <a
                                 href="#home"
                                 onClick={(e) => handleNavClick(e, '#home')}
-                                className={`text-2xl md:text-3xl font-medium transition-all duration-700 hover:scale-105 flex items-center ${isScrolled ? 'text-[#43342E]' : 'text-[#F9F4EF]'}`}
+                                className={`text-2xl md:text-3xl font-medium transition-all duration-700 hover:scale-105 flex items-center ${isScrolled || !navTransparentInitial ? 'text-[#43342E]' : 'text-[#F9F4EF]'}`}
                             >
-                                <div className={`transition-all duration-700 flex items-center gap-3 ${isScrolled ? 'translate-y-0 scale-90' : 'translate-y-0 scale-100'}`}>
+                                <div className={`transition-all duration-700 flex items-center gap-3 ${isScrolled || !navTransparentInitial ? 'translate-y-0 scale-90' : 'translate-y-0 scale-100'}`}>
                                     {logoContent}
                                 </div>
                             </a>
                         </div>
 
                         {/* Desktop Links */}
-                        <div className="hidden md:flex items-center space-x-12">
-                            {navLinks.map((link) => (
+                        <div className={`hidden md:flex items-center ${navLinks.length > 8 ? 'space-x-6' : 'space-x-12'}`}>
+                            {visibleLinks.map((link) => (
                                 <a
                                     key={link.name}
                                     href={link.href}
                                     onClick={(e) => handleNavClick(e, link.href)}
                                     className={`text-[10px] md:text-[11px] uppercase tracking-[0.3em] font-bold transition-all duration-500 relative group py-2 
-                                        ${isScrolled
+                                        ${isScrolled || !navTransparentInitial
                                             ? activeSection === link.id ? 'text-[#B08D55]' : 'text-[#5D4B42]/70 hover:text-[#43342E]'
                                             : activeSection === link.id ? 'text-[#F9F4EF]' : 'text-[#F9F4EF]/60 hover:text-white'
                                         }`}
@@ -297,6 +364,7 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
                                     />
                                 </a>
                             ))}
+                            {shouldShowDropdown && <DropdownMenu items={dropdownLinks} />}
                         </div>
 
                         {/* Mobile Toggle */}
@@ -304,7 +372,7 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
                                 className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-500 bg-white/10 backdrop-blur-md border border-white/20
-                                    ${isScrolled ? 'text-[#43342E] shadow-sm' : 'text-[#F9F4EF]'}`}
+                                    ${isScrolled || !navTransparentInitial ? 'text-[#43342E] shadow-sm' : 'text-[#F9F4EF]'}`}
                             >
                                 {isOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
                             </button>
@@ -314,7 +382,7 @@ export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] 
             </nav>
 
             {/* Premium Mobile Overlay */}
-            <div className={`fixed inset-0 z-[60] bg-[#FAF9F6] transition-all duration-700 ease-[cubic-bezier(0.7,0,0.3,1)] md:hidden flex flex-col items-center justify-center ${isOpen ? 'translate-y-0' : 'translate-y-[-100%]'}`}>
+            <div className={`fixed inset-0 z-[60] bg-[#FAF9F6] transition-all duration-700 ease-[cubic-bezier(0.7,0,0.3,1)] md:hidden flex flex-col items-center justify-center ${isOpen ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-[-100%] opacity-0 pointer-events-none'}`}>
                 {/* Close Button Inside Overlay */}
                 <button
                     onClick={() => setIsOpen(false)}

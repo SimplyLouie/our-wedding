@@ -24,6 +24,24 @@ const DetailsTab = ({ config, updateConfig, handleImageChange }) => {
                 </div>
             </div>
 
+            {/* Hero Customization Section */}
+            <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
+                <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2 font-bold tracking-tight">Hero Customization</h3>
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div className="group">
+                        <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Scroll Indicator Text</label>
+                        <input
+                            type="text"
+                            value={config.heroScrollText || 'Scroll'}
+                            onChange={(e) => updateConfig('heroScrollText', e.target.value)}
+                            className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md shadow-inner"
+                            placeholder="e.g. Scroll, Explore, Start"
+                        />
+                        <p className="text-[9px] text-[#8C7C72] mt-2 italic">Changes the text displayed at the bottom of the home screen.</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Browser & Device Styling Section */}
             <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
                 <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2"><Globe size={18} /> Browser & Device Styling</h3>

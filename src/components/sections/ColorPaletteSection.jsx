@@ -104,9 +104,9 @@ const ColorPaletteSection = ({ config }) => {
                                 <div className="bg-[#FAF9F6] p-3 rounded-full mb-4 text-[#B08D55]">
                                     <Shirt size={24} />
                                 </div>
-                                <h5 className="font-serif text-lg text-[#43342E] mb-2">Formal Attire</h5>
+                                <h5 className="font-serif text-lg text-[#43342E] mb-2">{config.dressCode || "Formal Attire"}</h5>
                                 <p className="text-sm text-[#8C7C72] leading-relaxed">
-                                    We kindly request that our guests dress in formal attire.
+                                    {config.dressCodeDescription || "We kindly request that our guests dress in formal attire."}
                                 </p>
                             </div>
 

@@ -4,6 +4,7 @@ export const defaultConfig = {
     dateIso: "2026-07-04T00:00:00",
     location: "Cebu, Philippines",
     heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+    heroScrollText: "Scroll",
     rsvpMode: 'form',
     rsvpExternalLink: "https://forms.google.com/",
     rsvpDeadline: "May 1st, 2026",
@@ -14,6 +15,10 @@ export const defaultConfig = {
     logoText: "",
     websiteTitle: "",
     showOpeningScreen: true,
+    navMaxLinks: 6,
+    navGlassmorphism: true,
+    navLogoHeight: 48,
+    navTransparentInitial: true,
     passcode: "admin",
     colorPalette: [
         { name: "Dusty Rose", hex: "#E6D2B5" },
@@ -23,6 +28,8 @@ export const defaultConfig = {
         { name: "Charcoal", hex: "#43342E" }
     ],
     savedPalettes: [],
+    dressCode: "Semi-Formal Attire",
+    dressCodeDescription: "We kindly request that our guests dress in semi-formal attire.",
     guestList: [],
     notes: [],
     storyTitle: "Our Journey",
@@ -96,15 +103,32 @@ export const defaultConfig = {
     mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d31405.021074747424!2d123.8824855877843!3d10.33166881775791!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x33a998b965e52569%3A0x11218408f6d8995c!2sBasilica%20Minore%20del%20Santo%20Ni%C3%B1o%20de%20Cebu!3m2!1d10.2941913!2d123.9021183!4m5!1s0x33a9992186481351%3A0xc6360f08960851ec!2sCasino%20Espa%C3%B1ol%20de%20Cebu!3m2!1d10.312999999999999!2d123.9024042!5e0!3m2!1sen!2sph!4v1716750000000!5m2!1sen!2sph",
     mapDestination: "Casino Español de Cebu, V. Ranudo St, Cebu City",
     mapInstructions: "The reception is approximately 15-20 minutes away from the church by car. Plenty of parking is available at the venue.",
+    guestbookTitle: "Guestbook",
+    guestbookSubtitle: "Wishes & Love",
+    guestbookMessages: [],
+    weatherEnabled: false,
+    weatherCity: "Cebu City",
+    weatherApiKey: "",
+    faqsTitle: "Frequently Asked Questions",
+    faqsSubtitle: "Everything You Need to Know",
+    faqs: [
+        { question: "What is the dress code?", answer: "The dress code is Semi-Formal. We suggest a suit and tie for men and a cocktail dress for women." },
+        { question: "Can I bring a plus one?", answer: "Due to venue capacity, we can only accommodate the guests listed on your invitation. We appreciate your understanding!" },
+        { question: "Is there parking available?", answer: "Yes, Casino Español provides ample parking for all our wedding guests." },
+        { question: "What time should I arrive?", answer: "The ceremony starts promptly at 3:00 PM. We recommend arriving 15-20 minutes early to find your seat." }
+    ],
     sectionOrder: [
         { id: 'story', label: 'Our Story', visible: true },
-        { id: 'timeline', label: 'Timeline', visible: true },
+        { id: 'timeline', label: 'Program', visible: true },
+        { id: 'weather', label: 'Weather', visible: true },
+        { id: 'faq', label: 'FAQ', visible: true },
         { id: 'palette', label: 'Color Palette', visible: true },
         { id: 'entourage', label: 'Entourage', visible: true },
         { id: 'gallery', label: 'Gallery', visible: true },
         { id: 'registry', label: 'Gift Registry', visible: true },
         { id: 'rsvp', label: 'RSVP', visible: true },
         { id: 'events', label: 'Events', visible: true },
-        { id: 'map', label: 'Venue Map', visible: true }
+        { id: 'map', label: 'Venue Map', visible: true },
+        { id: 'guestbook', label: 'Guestbook', visible: true }
     ]
 };

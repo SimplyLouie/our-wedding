@@ -21,6 +21,9 @@ import SystemsTab from './admin/SystemsTab';
 import OrganizerTab from './admin/OrganizerTab';
 import RegistryTab from './admin/RegistryTab';
 import MapTab from './admin/MapTab';
+import GuestbookTab from './admin/GuestbookTab';
+import WeatherTab from './admin/WeatherTab';
+import FaqTab from './admin/FaqTab';
 
 const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, onSave }) => {
     const [activeTab, setActiveTab] = useState('guests');
@@ -599,6 +602,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         {activeTab === 'organizer' && <OrganizerTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'registry' && <RegistryTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'map' && <MapTab config={config} updateConfig={updateConfig} />}
+                        {activeTab === 'weather' && <WeatherTab config={config} updateConfig={updateConfig} />}
+                        {activeTab === 'faq' && <FaqTab config={config} updateConfig={updateConfig} />}
+                        {activeTab === 'guestbook' && <GuestbookTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'systems' && (
                             <SystemsTab
                                 config={config}

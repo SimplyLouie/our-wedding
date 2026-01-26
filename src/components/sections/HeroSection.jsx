@@ -10,7 +10,7 @@ const HeroSection = ({ config, onScrollClick }) => {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40"></div>
             </div>
 
-            <div className="relative z-10 text-center px-4 flex flex-col justify-center h-full pt-10">
+            <div className="relative z-10 text-center px-4 flex flex-col justify-center h-full pt-10 w-full">
                 <ScrollReveal variant="up" delay={200}>
                     <h3 className="text-xl md:text-3xl font-script mb-6 text-[#E6D2B5] opacity-90 drop-shadow-lg tracking-wider">The Wedding Of</h3>
                 </ScrollReveal>
@@ -31,9 +31,12 @@ const HeroSection = ({ config, onScrollClick }) => {
 
                 <ScrollReveal variant="up" delay={800}><Countdown targetDate={config.dateIso} /></ScrollReveal>
 
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-float opacity-80 hover:opacity-100 transition-opacity z-20 cursor-pointer pt-10">
-                    <a href="#story" onClick={onScrollClick} className="text-[#F9F4EF] hover:text-[#C5A059] transition-colors flex flex-col items-center gap-2 group p-4 min-w-[60px]">
-                        <span className="text-[10px] uppercase tracking-[0.3em] font-light group-hover:tracking-[0.4em] transition-all">Scroll</span>
+                {/* Finalized Scroll Indicator */}
+                <div className="absolute bottom-8 inset-x-0 flex justify-center animate-float z-20 cursor-pointer pointer-events-none">
+                    <a href="#story" onClick={onScrollClick} className="text-[#F9F4EF] hover:text-[#C5A059] transition-colors flex flex-col items-center gap-2 group p-4 min-w-[120px] pointer-events-auto">
+                        <span className="text-[10px] uppercase tracking-[0.3em] font-light group-hover:tracking-[0.4em] transition-all -mr-[0.3em]">
+                            {config.heroScrollText || "Scroll"}
+                        </span>
                         <div className="w-[1px] h-12 bg-gradient-to-b from-[#F9F4EF] to-transparent"></div>
                     </a>
                 </div>

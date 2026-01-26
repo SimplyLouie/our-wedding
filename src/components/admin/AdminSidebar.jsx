@@ -2,7 +2,7 @@ import React from 'react';
 import {
     Users, ClipboardList, Settings, Heart, Clock,
     Calendar, Star, Palette, Gift, ImageIcon,
-    Globe, RefreshCw, Trash2, Layout, Map
+    Globe, RefreshCw, Trash2, Layout, Map, MessageSquare, CloudSun, HelpCircle
 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetRequest }) => {
@@ -20,6 +20,9 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
         { id: 'images', label: 'Images', shortLabel: 'Imgs', icon: ImageIcon },
         { id: 'registry', label: 'Gift Registry', shortLabel: 'Gift', icon: Gift },
         { id: 'map', label: 'Venue Map', shortLabel: 'Map', icon: Map },
+        { id: 'weather', label: 'Weather', shortLabel: 'Sun', icon: CloudSun },
+        { id: 'faq', label: 'FAQ', shortLabel: 'FAQ', icon: HelpCircle },
+        { id: 'guestbook', label: 'Guestbook', shortLabel: 'Book', icon: MessageSquare },
         { id: 'systems', label: 'Systems', shortLabel: 'Sys', icon: Globe }
     ];
 
@@ -37,7 +40,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
                         className={`
                             flex-1 md:flex-none
                             flex flex-col md:flex-row items-center justify-center md:justify-start 
-                            gap-1 md:gap-3 
+                            gap-2 md:gap-3 
                             px-3 md:px-8 
                             py-2 md:py-4 
                             min-w-[70px] md:min-w-0
@@ -50,8 +53,8 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
                             }
                         `}
                     >
-                        <tab.icon size={activeTab === tab.id ? 18 : 16} className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`} />
-                        <span className="text-[9px] md:text-xs">
+                        <tab.icon size={activeTab === tab.id ? 18 : 16} className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110 shrink-0' : 'shrink-0'}`} />
+                        <span className="text-[9px] md:text-sm leading-tight text-center md:text-left">
                             <span className="hidden md:inline">{tab.label}</span>
                             <span className="md:hidden">{tab.shortLabel}</span>
                         </span>
