@@ -2,7 +2,7 @@ import React from 'react';
 import {
     Users, ClipboardList, Settings, Heart, Clock,
     Calendar, Star, Palette, Gift, ImageIcon,
-    Globe, RefreshCw, Trash2, Layout
+    Globe, RefreshCw, Trash2, Layout, Map
 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetRequest }) => {
@@ -19,6 +19,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
         { id: 'rsvp', label: 'RSVP Config', shortLabel: 'RSVP', icon: Gift },
         { id: 'images', label: 'Images', shortLabel: 'Imgs', icon: ImageIcon },
         { id: 'registry', label: 'Gift Registry', shortLabel: 'Gift', icon: Gift },
+        { id: 'map', label: 'Venue Map', shortLabel: 'Map', icon: Map },
         { id: 'systems', label: 'Systems', shortLabel: 'Sys', icon: Globe }
     ];
 

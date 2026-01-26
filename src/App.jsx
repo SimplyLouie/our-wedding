@@ -21,6 +21,7 @@ import ColorPaletteSection from './components/sections/ColorPaletteSection';
 import GallerySection from './components/sections/GallerySection';
 import RsvpSection from './components/sections/RsvpSection';
 import RegistrySection from './components/sections/RegistrySection';
+import MapSection from './components/sections/MapSection';
 
 import {
   NoiseOverlay, AmbientGlow, CircularScroll,
@@ -379,6 +380,8 @@ export default function App() {
               return <EventsSection key="events" config={config} />;
             case 'registry':
               return <RegistrySection key="registry" config={config} />;
+            case 'map':
+              return <MapSection key="map" config={config} />;
             default:
               return null;
           }
