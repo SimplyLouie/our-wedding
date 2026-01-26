@@ -32,18 +32,19 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
             <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-10 md:hidden opacity-50" />
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-10 md:hidden opacity-50" />
 
-            <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-visible w-full no-scrollbar md:pb-20">
+            <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-visible w-full no-scrollbar md:pb-20 snap-x">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                            flex-1 md:flex-none
+                            flex-none md:flex-none
+                            snap-start
                             flex flex-col md:flex-row items-center justify-center md:justify-start 
                             gap-2 md:gap-3 
-                            px-3 md:px-8 
+                            px-4 md:px-8 
                             py-2 md:py-4 
-                            min-w-[70px] md:min-w-0
+                            min-w-[80px] md:min-w-0
                             text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest 
                             transition-all whitespace-nowrap 
                             border-b-2 md:border-b-0 md:border-l-4 
