@@ -527,7 +527,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                     </div>
                 </div>
 
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                     <AdminSidebar
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
