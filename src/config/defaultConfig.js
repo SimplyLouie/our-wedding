@@ -84,12 +84,20 @@ export const defaultConfig = {
         "https://images.unsplash.com/photo-1519225421980-715cb0202128?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=90",
         "https://images.unsplash.com/photo-1607193384230-25e635834331?auto=format&fit=crop&w=600&q=90"
     ],
+    registryTitle: "Gift Registry",
+    registrySubtitle: "Love & Support",
+    registryInstruction: "Your presence is the greatest gift, but if you wish to honor us with a gift, we've set up a registry for your convenience.",
+    registryItems: [
+        { type: 'bank', accountName: "Louie Mendez", accountNumber: "1234-5678-90", bankName: "BDO Unibank", qrCode: "", label: "Bank Transfer" },
+        { type: 'ewallet', accountName: "Florie Santos", accountNumber: "0917-000-0000", bankName: "GCash", qrCode: "", label: "GCash" }
+    ],
     sectionOrder: [
         { id: 'story', label: 'Our Story', visible: true },
         { id: 'timeline', label: 'Timeline', visible: true },
         { id: 'palette', label: 'Color Palette', visible: true },
         { id: 'entourage', label: 'Entourage', visible: true },
         { id: 'gallery', label: 'Gallery', visible: true },
+        { id: 'registry', label: 'Gift Registry', visible: true },
         { id: 'rsvp', label: 'RSVP', visible: true },
         { id: 'events', label: 'Events', visible: true }
     ]

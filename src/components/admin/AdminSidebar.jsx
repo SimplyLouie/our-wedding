@@ -18,6 +18,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetReques
         { id: 'colors', label: 'Palette', shortLabel: 'Palette', icon: Palette },
         { id: 'rsvp', label: 'RSVP Config', shortLabel: 'RSVP', icon: Gift },
         { id: 'images', label: 'Images', shortLabel: 'Imgs', icon: ImageIcon },
+        { id: 'registry', label: 'Gift Registry', shortLabel: 'Gift', icon: Gift },
         { id: 'systems', label: 'Systems', shortLabel: 'Sys', icon: Globe }
     ];
 

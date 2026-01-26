@@ -17,6 +17,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff } from 'lucide-react';
 
+import { defaultConfig } from '../../config/defaultConfig';
+
 const SortableItem = ({ section, onToggleVisibility }) => {
     const {
         attributes,
@@ -64,7 +66,11 @@ const SortableItem = ({ section, onToggleVisibility }) => {
 };
 
 const OrganizerTab = ({ config, updateConfig }) => {
-    const sections = config.sectionOrder || [];
+    // Sync logic: start with current order, but add any missing default sections
+    const currentOrder = config.sectionOrder || [];
+    const defaultOrder = defaultConfig.sectionOrder || [];
+    const missing = defaultOrder.filter(d => !currentOrder.find(c => c.id === d.id));
+    const sections = [...currentOrder, ...missing];
 
     const sensors = useSensors(
         useSensor(PointerSensor),
