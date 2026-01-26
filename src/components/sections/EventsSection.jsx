@@ -24,7 +24,7 @@ const EventsSection = ({ config }) => {
                         const IconComponent = ICON_MAP[event.icon] || MapPin;
                         return (
                             <ScrollReveal key={idx} delay={200 * (idx + 1)} variant="up" className="h-full w-full md:w-[380px]">
-                                <div className="bg-white/80 backdrop-blur-sm shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] text-center h-full group border-b-4 border-transparent hover:border-[#DBC1A7] transition-all duration-300 rounded-lg overflow-hidden flex flex-col active:bg-[#F5F0E6]">
+                                <div className="bg-white/80 backdrop-blur-sm shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] text-center h-full group border-b-4 border-transparent hover:border-[#DBC1A7] transition-all duration-300 rounded-lg overflow-hidden flex flex-col active:bg-[#F5F0E6] relative">
 
                                     {/* Event Image */}
                                     <div className="h-48 w-full relative overflow-hidden">
@@ -40,13 +40,13 @@ const EventsSection = ({ config }) => {
                                             </div>
                                         )}
                                         <div className="absolute inset-0 bg-[#43342E]/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                                    </div>
 
-                                        {/* Floating Icon */}
-                                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
-                                            <span className="inline-block p-4 bg-[#F5F0E6] rounded-full text-[#B08D55] group-hover:bg-[#43342E] group-hover:text-[#F9F4EF] transition-colors duration-500 shadow-md border-4 border-white">
-                                                <IconComponent size={20} strokeWidth={1.5} />
-                                            </span>
-                                        </div>
+                                    {/* Floating Icon - Moved outside to prevent clipping */}
+                                    <div className="absolute top-48 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                                        <span className="inline-block p-4 bg-[#F5F0E6] rounded-full text-[#B08D55] group-hover:bg-[#43342E] group-hover:text-[#F9F4EF] transition-colors duration-500 shadow-md border-4 border-white">
+                                            <IconComponent size={20} strokeWidth={1.5} />
+                                        </span>
                                     </div>
 
                                     <div className="p-8 pt-10 flex-1 flex flex-col items-center">
