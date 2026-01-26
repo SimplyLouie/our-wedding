@@ -1,7 +1,38 @@
 import React from 'react';
-import { Globe, Smartphone, Type, Upload, Trash2 } from 'lucide-react';
+import { Globe, Smartphone, Type, Upload, Trash2, MessageCircle, Facebook, Copy, Check, Share2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const DetailsTab = ({ config, updateConfig, handleImageChange }) => {
+    const [copied, setCopied] = React.useState(false);
+
+    const shareUrl = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast.success("Link copied to clipboard!");
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleWebShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: config.shareTitle || "You're Invited!",
+                    text: config.shareDescription || "Join us for our wedding celebration.",
+                    url: shareUrl,
+                });
+            } catch (err) {
+                console.log('Error sharing:', err);
+            }
+        } else {
+            handleCopyLink();
+        }
+    };
+
+    const messengerUrl = `https://www.facebook.com/dialog/send?app_id=123456789&link=${encodeURIComponent(shareUrl)}&redirect_uri=${encodeURIComponent(shareUrl)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+
     return (
         <div className="space-y-8 animate-fade-in">
             <h3 className="font-serif text-lg text-[#43342E] border-b border-[#E6D2B5]/30 pb-2">Core Details</h3>
@@ -136,8 +167,77 @@ const DetailsTab = ({ config, updateConfig, handleImageChange }) => {
             </div>
 
             <div className="border-t border-[#E6D2B5]/30 pt-8 mt-4">
-                <h3 className="font-serif text-lg text-[#43342E] mb-6">Social & Contact Links</h3>
+                <h3 className="font-serif text-lg text-[#43342E] mb-6 flex items-center gap-2 font-bold tracking-tight">Social & Invitation Preview</h3>
+
+                {/* Live Preview Card */}
+                <div className="mb-8 p-6 bg-white border border-[#E6D2B5] shadow-sm rounded-lg max-w-sm mx-auto">
+                    <p className="text-[9px] uppercase tracking-widest text-[#B08D55] font-bold mb-4 text-center">Social Link Preview</p>
+                    <div className="border border-[#E6D2B5]/50 overflow-hidden rounded shadow-inner bg-[#FAF9F6]">
+                        {config.heroImage && (
+                            <div className="aspect-[1.91/1] w-full overflow-hidden border-b border-[#E6D2B5]/30">
+                                <img src={config.heroImage} className="w-full h-full object-cover" alt="Social Preview" />
+                            </div>
+                        )}
+                        <div className="p-4">
+                            <p className="font-serif text-sm text-[#43342E] mb-1">{config.shareTitle || "You're Invited to Our Wedding!"}</p>
+                            <p className="text-[10px] text-[#8C7C72] line-clamp-2 leading-relaxed italic">{config.shareDescription || "Celebrate with us on our special day..."}</p>
+                        </div>
+                    </div>
+
+                    {/* Admin Share Actions */}
+                    <div className="mt-6 flex flex-wrap justify-center gap-4 border-t border-[#E6D2B5]/30 pt-6">
+                        <button
+                            onClick={handleWebShare}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#C76D55] text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-[#B05D47] transition-colors"
+                        >
+                            <Share2 size={14} /> System Share
+                        </button>
+                        <a
+                            href={facebookUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white text-[10px] font-bold uppercase tracking-widest rounded hover:bg-[#166fe5] transition-colors"
+                        >
+                            <Facebook size={14} /> Facebook
+                        </a>
+                        <button
+                            onClick={handleCopyLink}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E6D2B5] text-[#43342E] text-[10px] font-bold uppercase tracking-widest rounded hover:bg-gray-50 transition-colors"
+                        >
+                            {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                            {copied ? 'Copied!' : 'Copy Link'}
+                        </button>
+                    </div>
+                    <p className="text-[9px] text-[#8C7C72] text-center mt-4 italic">Note: Messenger sharing works best when using the "Copy Link" and pasting it into a message, or using the System Share on mobile.</p>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-8">
+                    <div className="group md:col-span-2 hidden">
+                        <label className="flex items-center gap-3 cursor-pointer group w-fit">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={config.showFloatingShare !== false}
+                                    onChange={(e) => updateConfig('showFloatingShare', e.target.checked)}
+                                />
+                                <div className={`w-10 h-5 rounded-full transition-colors duration-200 ease-in-out ${config.showFloatingShare !== false ? 'bg-[#C76D55]' : 'bg-gray-200'}`}></div>
+                                <div className={`absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out ${config.showFloatingShare !== false ? 'translate-x-5' : ''}`}></div>
+                            </div>
+                            <span className="text-[10px] font-bold text-[#43342E] uppercase tracking-wider">Show Floating Sharing Seal</span>
+                        </label>
+                    </div>
+
+                    <div className="group">
+                        <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Share Card Title</label>
+                        <input type="text" value={config.shareTitle || ''} onChange={(e) => updateConfig('shareTitle', e.target.value)} className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md" placeholder="You're Invited!" />
+                    </div>
+
+                    <div className="group">
+                        <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Share Card Description</label>
+                        <input type="text" value={config.shareDescription || ''} onChange={(e) => updateConfig('shareDescription', e.target.value)} className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md" placeholder="Celebrate with us..." />
+                    </div>
+
                     <div className="group">
                         <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Instagram URL</label>
                         <input type="text" value={config.instagram} onChange={(e) => updateConfig('instagram', e.target.value)} className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md shadow-inner" placeholder="#" />
@@ -145,6 +245,10 @@ const DetailsTab = ({ config, updateConfig, handleImageChange }) => {
                     <div className="group">
                         <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Facebook URL</label>
                         <input type="text" value={config.facebook} onChange={(e) => updateConfig('facebook', e.target.value)} className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md shadow-inner" placeholder="#" />
+                    </div>
+                    <div className="group">
+                        <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Messenger Chat URL</label>
+                        <input type="text" value={config.messenger || ''} onChange={(e) => updateConfig('messenger', e.target.value)} className="w-full h-10 px-4 py-2 bg-[#FAF9F6] border border-[#E6D2B5] text-xs focus:outline-none focus:border-[#B08D55] rounded-md shadow-inner" placeholder="m.me/yourname" />
                     </div>
                     <div className="group">
                         <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Contact URL</label>

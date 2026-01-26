@@ -379,13 +379,23 @@ export default function App() {
       <div className={`transition-all duration-1000 ${appStarted ? 'opacity-100' : 'opacity-0 scale-95 origin-center'}`}>
         <Navigation
           config={config}
-          sectionOrder={config.sectionOrder || defaultConfig.sectionOrder}
+          sectionOrder={(() => {
+            const currentOrder = config.sectionOrder || [];
+            const defaultOrder = defaultConfig.sectionOrder || [];
+            const missing = defaultOrder.filter(d => !currentOrder.find(c => c.id === d.id));
+            return [...currentOrder, ...missing];
+          })()}
         />
 
         <HeroSection config={config} onScrollClick={handleScrollClick} />
 
         {/* Sections based on Dynamic Order */}
-        {(config.sectionOrder || defaultConfig.sectionOrder).map((section) => {
+        {(() => {
+          const currentOrder = config.sectionOrder || [];
+          const defaultOrder = defaultConfig.sectionOrder || [];
+          const missing = defaultOrder.filter(d => !currentOrder.find(c => c.id === d.id));
+          return [...currentOrder, ...missing];
+        })().map((section) => {
           if (section.visible === false) return null;
 
           switch (section.id) {
