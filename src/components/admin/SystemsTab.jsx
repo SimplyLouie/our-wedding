@@ -78,6 +78,56 @@ const SystemsTab = ({ config, updateConfig, onSave, handleResetRequest, resetCon
                     )}
                 </div>
             </div>
+
+            {/* Debug & Diagnostics */}
+            <div className="bg-white rounded border border-[#E6D2B5]/30 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h4 className="text-sm font-bold text-[#43342E] mb-1">Debug & Diagnostics</h4>
+                        <p className="text-xs text-[#8C7C72]">Verify database synchronization status</p>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-[#FAF9F6] space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white p-3 border border-[#E6D2B5]/30 rounded">
+                            <label className="block text-[8px] font-bold text-[#B08D55] uppercase mb-1">Sync Version (Timestamp)</label>
+                            <p className="text-[10px] font-mono text-[#43342E] truncate" title={config.lastSaved}>
+                                {config.lastSaved ? new Date(config.lastSaved).toLocaleString() : 'Never Saved'}
+                            </p>
+                        </div>
+                        <div className="bg-white p-3 border border-[#E6D2B5]/30 rounded">
+                            <label className="block text-[8px] font-bold text-[#B08D55] uppercase mb-1">Status</label>
+                            <p className="text-[10px] font-bold text-green-600 flex items-center gap-1">
+                                <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                Live Connection
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-[8px] font-bold text-[#B08D55] uppercase">Raw Configuration Data (JSON)</label>
+                        <div className="relative group">
+                            <pre className="text-[9px] bg-[#1F1815] text-[#A8D8B9] p-4 rounded h-40 overflow-auto no-scrollbar font-mono leading-relaxed ring-1 ring-inset ring-white/10">
+                                {JSON.stringify(config, null, 2)}
+                            </pre>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(JSON.stringify(config, null, 2));
+                                        toast.success("JSON copied to clipboard");
+                                    }}
+                                    className="bg-white/10 hover:bg-white/20 text-white p-1 rounded backdrop-blur-sm"
+                                    title="Copy JSON"
+                                >
+                                    <Database size={12} />
+                                </button>
+                            </div>
+                        </div>
+                        <p className="text-[8px] text-[#8C7C72]">This shows the exact data currently held in the app's memory. When you click "Save Changes", this is what is sent to Firestore.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

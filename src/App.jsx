@@ -149,19 +149,28 @@ export default function App() {
       return;
     }
 
-    // Use explicit config (passed from AdminPanel) or the current state
-    const configToSave = explicitConfig || config;
-    setIsSaving(true);
+    // Capture the exact moment of saving
+    const timestamp = new Date().toISOString();
 
-    console.log("Saving following config to Firestore:", configToSave);
+    // Add timestamp to the config so we can verify the sync on reload
+    const currentConfig = explicitConfig || config;
+    const configToSave = {
+      ...currentConfig,
+      lastSaved: timestamp
+    };
+
+    setIsSaving(true);
+    console.log(`[Firestore Write] Initiating save at ${timestamp}`, configToSave);
 
     try {
       await setDoc(doc(db, 'wedding', 'config'), configToSave);
-      console.log("Firestore Write: Success.");
+      console.log(`[Firestore Write] SUCCESS: Data persisted to 'wedding/config' at ${timestamp}`);
+      toast.success(`Changes saved successfully at ${new Date().toLocaleTimeString()}`);
       setIsSaving(false);
       return true;
     } catch (e) {
-      console.error("Firestore Write Error:", e);
+      console.error("[Firestore Write] ERROR:", e);
+      toast.error(`Save failed: ${e.message}`);
       setIsSaving(false);
       throw e;
     }
