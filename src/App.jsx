@@ -104,7 +104,28 @@ export default function App() {
     return () => unsubscribe();
   }, [hasSynced]); // showAdminPanel removed from dependencies, using ref instead
 
-  // 3. Preloader Logic
+  // 3. Global Sync / Cache Refresh
+  useEffect(() => {
+    if (config.syncId) {
+      const localSyncId = localStorage.getItem('wedding_sync_id');
+
+      // If we see a new sync ID and we are NOT in the admin panel
+      if (localSyncId !== config.syncId && !showAdminPanel) {
+        console.log("[Sync] New Global Refresh Signal detected. Reloading...");
+        localStorage.setItem('wedding_sync_id', config.syncId);
+
+        // Brief delay to allow the save toast to finish if visible
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else if (localSyncId !== config.syncId && showAdminPanel) {
+        // If admin, just update the local ID so we don't refresh later
+        localStorage.setItem('wedding_sync_id', config.syncId);
+      }
+    }
+  }, [config.syncId, showAdminPanel]);
+
+  // 4. Preloader Logic
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) setLoading(false);

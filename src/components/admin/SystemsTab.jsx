@@ -45,37 +45,45 @@ const SystemsTab = ({ config, updateConfig, onSave, handleResetRequest, resetCon
                 </div>
             </div>
 
-            {/* Database Initialization */}
+            {/* Global Cache Refresh */}
             <div className="bg-white rounded border border-[#E6D2B5]/30 overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                     <div>
-                        <h4 className="text-sm font-bold text-[#43342E] mb-1">Database Initialization</h4>
-                        <p className="text-xs text-[#8C7C72]">Overwrite live database with local code defaults</p>
+                        <h4 className="text-sm font-bold text-[#43342E] mb-1">Global Guest Refresh</h4>
+                        <p className="text-xs text-[#8C7C72]">Force all guest browsers to reload the latest data</p>
                     </div>
                 </div>
 
                 <div className="p-6 bg-[#FAF9F6] space-y-4">
                     <div className="flex items-start gap-4 text-[#8C7C72]">
-                        <Database size={18} className="shrink-0 mt-0.5" />
+                        <RefreshCw size={18} className="shrink-0 mt-0.5" />
                         <div className="text-xs space-y-2">
-                            <p>This will <strong>overwrite</strong> all wedding details in the live database with the values currently defined in <code>defaultConfig.js</code>.</p>
-                            <p className="font-bold text-red-600">Warning: This will not affect the guest list, but will reset all other sections like Story, Timeline, and Entourage.</p>
+                            <p>If you made changes and some guests still see "old" information, you can trigger a <strong>Global Refresh</strong>.</p>
+                            <p>This will force every guest's website to automatically refresh exactly once to fetch the latest database updates.</p>
                         </div>
                     </div>
 
                     <button
-                        onClick={handleResetRequest}
-                        className={`w-full py-4 rounded font-bold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 ${resetConfirm
-                                ? 'bg-red-500 text-white animate-pulse'
-                                : 'bg-white border border-[#E6D2B5] text-[#43342E] hover:bg-[#F9F4EF]'
-                            }`}
+                        onClick={() => {
+                            const syncId = Date.now().toString();
+                            updateConfig('syncId', syncId);
+                            if (onSave) {
+                                toast.promise(
+                                    onSave({ ...config, syncId }),
+                                    {
+                                        loading: 'Broadcasting Refresh signal...',
+                                        success: <b>Broadcast Sent Successfully!</b>,
+                                        error: <b>Failed to broadcast.</b>,
+                                    }
+                                );
+                            }
+                        }}
+                        className="w-full py-4 rounded font-bold uppercase tracking-widest text-xs bg-[#43342E] text-white hover:bg-[#5D4B42] transition-all flex items-center justify-center gap-2 shadow-md"
                     >
-                        <RefreshCw size={14} className={resetConfirm ? 'animate-spin' : ''} />
-                        {resetConfirm ? 'Confirm: Overwrite Live DB?' : 'Import from Local Code'}
+                        <RefreshCw size={14} />
+                        Trigger Global Refresh
                     </button>
-                    {resetConfirm && (
-                        <p className="text-[10px] text-center text-red-400 font-bold animate-fade-in">Click again to confirm. Reverts names, timeline, and story to code defaults.</p>
-                    )}
+                    <p className="text-[10px] text-center text-[#8C7C72]">Last Synchronized: {config.syncId ? new Date(parseInt(config.syncId)).toLocaleString() : 'Never'}</p>
                 </div>
             </div>
 
