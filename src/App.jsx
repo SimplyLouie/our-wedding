@@ -56,17 +56,36 @@ export default function App() {
 
   // 2. Data Sync
   useEffect(() => {
-    if (!user) return;
     const unsubscribe = onSnapshot(doc(db, 'wedding', 'config'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Ensure new defaults (like timeline) are present if missing in DB
-        setConfig({ ...defaultConfig, ...data, timeline: data.timeline || defaultConfig.timeline });
+
+        setConfig(prev => {
+          // If the admin panel is open, we avoid overwriting the entire config
+          // to protect unsaved local edits (like Story or Timeline changes).
+          // We still sync the guest list in real-time for convenience.
+          if (showAdminPanel) {
+            return {
+              ...prev,
+              guestList: data.guestList || prev.guestList,
+              // Preserve local edits for the rest of the configuration
+            };
+          }
+
+          // Full sync when panel is closed or on initial load
+          return { ...defaultConfig, ...data };
+        });
+      } else {
+        // Fallback to defaults if no document exists in Firestore
+        setConfig(prev => showAdminPanel ? prev : defaultConfig);
       }
       setLoading(false);
-    }, (error) => { console.error(error); setLoading(false); });
+    }, (error) => {
+      console.error("Firestore sync error:", error);
+      setLoading(false);
+    });
     return () => unsubscribe();
-  }, [user]);
+  }, [showAdminPanel]);
 
   // 3. Preloader Logic
   useEffect(() => {
