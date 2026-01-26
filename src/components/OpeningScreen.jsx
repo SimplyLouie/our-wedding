@@ -42,17 +42,6 @@ export const OpeningScreen = ({ config, onEnter, show, loading }) => {
                         </div>
                     ) : show ? (
                         <div className="animate-fade-in space-y-6">
-                            {/* Monogram Circle */}
-                            <div className="mb-12">
-                                <div className="relative w-24 h-24 md:w-32 md:h-32 mx-auto">
-                                    <div className="absolute inset-0 border border-[#E6D2B5] rounded-full animate-spin-slow opacity-30" />
-                                    <div className="absolute inset-2 border border-[#B08D55]/20 rounded-full" />
-                                    <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center group overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#B08D55]/5 to-transparent group-hover:bg-[#B08D55]/10 transition-colors" />
-                                        <span className="font-script text-5xl md:text-6xl text-[#B08D55] italic relative z-10 drop-shadow-sm select-none">L&F</span>
-                                    </div>
-                                </div>
-                            </div>
                             <div className="space-y-6 mb-12">
                                 <h3 className="text-[#B08D55] text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium opacity-70">Together with their families</h3>
                                 <h2 className="font-serif text-4xl md:text-6xl text-[#43342E] leading-tight tracking-tight">
