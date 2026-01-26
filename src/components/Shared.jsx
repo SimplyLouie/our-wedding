@@ -185,20 +185,20 @@ export const Countdown = ({ targetDate }) => {
     );
 };
 
-export const Navigation = ({ coupleName, logoText, logoImage }) => {
+export const Navigation = ({ coupleName, logoText, logoImage, sectionOrder = [] }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeSection, setActiveSection] = useState('home');
 
     const navLinks = [
         { name: 'Home', id: 'home', href: '#home' },
-        { name: 'Our Story', id: 'story', href: '#story' },
-        { name: 'Timeline', id: 'timeline', href: '#timeline' },
-        { name: 'Palette', id: 'color-palette', href: '#color-palette' },
-        { name: 'Entourage', id: 'entourage', href: '#entourage' },
-        { name: 'Gallery', id: 'gallery', href: '#gallery' },
-        { name: 'Events', id: 'events', href: '#events' },
-        { name: 'RSVP', id: 'rsvp', href: '#rsvp' },
+        ...sectionOrder
+            .filter(section => section.visible !== false)
+            .map(section => ({
+                name: section.label,
+                id: section.id === 'palette' ? 'color-palette' : section.id,
+                href: section.id === 'palette' ? '#color-palette' : `#${section.id}`
+            }))
     ];
 
     useEffect(() => {

@@ -18,6 +18,7 @@ import PaletteTab from './admin/PaletteTab';
 import RsvpConfigTab from './admin/RsvpConfigTab';
 import ImagesTab from './admin/ImagesTab';
 import SystemsTab from './admin/SystemsTab';
+import OrganizerTab from './admin/OrganizerTab';
 
 const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, onSave }) => {
     const [activeTab, setActiveTab] = useState('guests');
@@ -593,6 +594,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         )}
                         {activeTab === 'rsvp' && <RsvpConfigTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'images' && <ImagesTab config={config} handleImageChange={handleImageChange} handleUrlChange={handleUrlChange} />}
+                        {activeTab === 'organizer' && <OrganizerTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'systems' && (
                             <SystemsTab
                                 config={config}

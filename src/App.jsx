@@ -337,29 +337,49 @@ export default function App() {
       )}
 
       <div className={`transition-all duration-1000 ${appStarted ? 'opacity-100' : 'opacity-0 scale-95 origin-center'}`}>
-        <Navigation coupleName={config.names} logoText={config.logoText} logoImage={config.logoImage} />
+        <Navigation
+          coupleName={config.names}
+          logoText={config.logoText}
+          logoImage={config.logoImage}
+          sectionOrder={config.sectionOrder || defaultConfig.sectionOrder}
+        />
 
         <HeroSection config={config} onScrollClick={handleScrollClick} />
 
-        <StorySection config={config} />
-        <TimelineSection config={config} />
-        <ColorPaletteSection config={config} />
+        {/* Sections based on Dynamic Order */}
+        {(config.sectionOrder || defaultConfig.sectionOrder).map((section) => {
+          if (section.visible === false) return null;
 
-        <EntourageSection config={config} />
-
-        <GallerySection config={config} onImageClick={setLightboxImg} />
-
-        <RsvpSection
-          config={config}
-          rsvpForm={rsvpForm}
-          setRsvpForm={setRsvpForm}
-          isSubmitting={isSubmitting}
-          isSubmitted={isSubmitted}
-          setIsSubmitted={setIsSubmitted}
-          onSubmit={handleRsvpSubmit}
-        />
-
-        <EventsSection config={config} />
+          switch (section.id) {
+            case 'story':
+              return <StorySection key="story" config={config} />;
+            case 'timeline':
+              return <TimelineSection key="timeline" config={config} />;
+            case 'palette':
+              return <ColorPaletteSection key="palette" config={config} />;
+            case 'entourage':
+              return <EntourageSection key="entourage" config={config} />;
+            case 'gallery':
+              return <GallerySection key="gallery" config={config} onImageClick={setLightboxImg} />;
+            case 'rsvp':
+              return (
+                <RsvpSection
+                  key="rsvp"
+                  config={config}
+                  rsvpForm={rsvpForm}
+                  setRsvpForm={setRsvpForm}
+                  isSubmitting={isSubmitting}
+                  isSubmitted={isSubmitted}
+                  setIsSubmitted={setIsSubmitted}
+                  onSubmit={handleRsvpSubmit}
+                />
+              );
+            case 'events':
+              return <EventsSection key="events" config={config} />;
+            default:
+              return null;
+          }
+        })}
 
         <Footer config={config} onAdminClick={() => setShowAdminLogin(true)} />
       </div>

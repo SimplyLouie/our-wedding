@@ -2,13 +2,14 @@ import React from 'react';
 import {
     Users, ClipboardList, Settings, Heart, Clock,
     Calendar, Star, Palette, Gift, ImageIcon,
-    Globe, RefreshCw, Trash2
+    Globe, RefreshCw, Trash2, Layout
 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetRequest }) => {
     const tabs = [
         { id: 'guests', label: 'Guest List', shortLabel: 'Guests', icon: Users },
         { id: 'planner', label: 'Planner', shortLabel: 'Plan', icon: ClipboardList },
+        { id: 'organizer', label: 'Organizer', shortLabel: 'Org', icon: Layout },
         { id: 'general', label: 'General', shortLabel: 'Gen', icon: Settings },
         { id: 'story', label: 'Our Story', shortLabel: 'Story', icon: Heart },
         { id: 'timeline', label: 'Timeline', shortLabel: 'Time', icon: Clock },

@@ -83,5 +83,14 @@ export const defaultConfig = {
         "https://images.unsplash.com/photo-1522673607200-1645062cd958?auto=format&fit=crop&w=600&q=90",
         "https://images.unsplash.com/photo-1519225421980-715cb0202128?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=90",
         "https://images.unsplash.com/photo-1607193384230-25e635834331?auto=format&fit=crop&w=600&q=90"
+    ],
+    sectionOrder: [
+        { id: 'story', label: 'Our Story', visible: true },
+        { id: 'timeline', label: 'Timeline', visible: true },
+        { id: 'palette', label: 'Color Palette', visible: true },
+        { id: 'entourage', label: 'Entourage', visible: true },
+        { id: 'gallery', label: 'Gallery', visible: true },
+        { id: 'rsvp', label: 'RSVP', visible: true },
+        { id: 'events', label: 'Events', visible: true }
     ]
 };
