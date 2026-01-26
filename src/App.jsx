@@ -56,35 +56,37 @@ export default function App() {
 
   // 2. Data Sync
   useEffect(() => {
-    // We listen to the config document. This should be public-read in Firestore rules.
+    console.log("Initializing Firestore Sync...");
     const unsubscribe = onSnapshot(doc(db, 'wedding', 'config'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log("Live configuration received from Firestore.");
+        console.log("Snapshot received from Firestore. State update pending...");
 
         setConfig(prev => {
-          // PROTECTION: If the admin panel is open, we only sync the guestList.
-          // This prevents unsaved local edits from being overwritten by the real-time listener.
+          // If the admin panel is open, we avoid overwriting the entire config
+          // to protect unsaved local edits (like Story or Timeline changes).
           if (showAdminPanel) {
+            console.log("Admin Panel Open: Syncing Guest List only.");
             return {
               ...prev,
               guestList: data.guestList || prev.guestList,
             };
           }
 
-          // Full merge for guests and initial load.
+          // Full merge for initial load or for guests.
+          // Note: { ...defaultConfig, ...data } means database values OVERWRITE code defaults.
+          console.log("Merging Firestore data into local config.");
           return { ...defaultConfig, ...data };
         });
       } else {
-        console.warn("No 'config' document found in Firestore. Using defaultConfig.");
+        console.warn("No remote configuration found. Using code defaults.");
+        setConfig(prev => showAdminPanel ? prev : defaultConfig);
       }
       setLoading(false);
     }, (error) => {
-      console.error("CRITICAL: Firestore sync failed.", error);
+      console.error("Firestore sync failed:", error);
       if (error.code === 'permission-denied') {
-        toast.error("Access denied. Please check Firestore security rules for guest access.");
-      } else {
-        toast.error(`Auto-Sync Error: ${error.message}`);
+        toast.error("Access Denied: Please check Firestore Security Rules.");
       }
       setLoading(false);
     });
@@ -102,6 +104,7 @@ export default function App() {
 
   // 4. Hero Image Preload
   useEffect(() => {
+    if (!config.heroImage) return;
     const img = new Image();
     img.src = config.heroImage;
     img.onload = () => setHeroLoaded(true);
@@ -140,24 +143,25 @@ export default function App() {
     setConfig(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSaveToDb = async (newConfig) => {
-    // Explicitly check for user to prevent accidental unauthenticated calls
+  const handleSaveToDb = async (explicitConfig) => {
     if (!auth.currentUser) {
-      console.warn("Save attempted without authentication");
-      return Promise.reject(new Error("Unauthorized"));
+      toast.error("Auth session expired. Please log in again.");
+      return;
     }
 
-    const configToSave = newConfig || config;
+    // Use explicit config (passed from AdminPanel) or the current state
+    const configToSave = explicitConfig || config;
     setIsSaving(true);
 
-    console.log("Saving to Firestore:", configToSave);
+    console.log("Saving following config to Firestore:", configToSave);
 
     try {
       await setDoc(doc(db, 'wedding', 'config'), configToSave);
-      console.log("Firestore Save Successful!");
+      console.log("Firestore Write: Success.");
       setIsSaving(false);
+      return true;
     } catch (e) {
-      console.error("Error saving config to Firestore:", e);
+      console.error("Firestore Write Error:", e);
       setIsSaving(false);
       throw e;
     }
@@ -166,7 +170,7 @@ export default function App() {
   const handleResetToLocal = () => {
     if (confirm("This will overwrite the LIVE database with the local defaultConfig.js settings. Continue?")) {
       setConfig(defaultConfig);
-      handleSaveToDb(defaultConfig); // Pass explicitly to avoid async state delay
+      handleSaveToDb(defaultConfig); // Explicitly pass to ensure it saves correct data
     }
   };
 

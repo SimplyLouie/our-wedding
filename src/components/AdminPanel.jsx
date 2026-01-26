@@ -141,7 +141,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
     const handleSaveClick = () => {
         if (onSave) {
             toast.promise(
-                onSave(),
+                onSave(config),
                 {
                     loading: 'Saving changes...',
                     success: <b>Settings Saved!</b>,
@@ -233,61 +233,67 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     // --- Helpers ---
     const updateStory = (index, field, value) => {
-        const newStory = [...config.story];
-        newStory[index][field] = value;
+        const newStory = config.story.map((item, i) =>
+            i === index ? { ...item, [field]: value } : item
+        );
         updateConfig('story', newStory);
     };
 
     const addStoryItem = () => {
-        const newStory = [...config.story, { date: "New Date", title: "New Milestone", description: "Description here..." }];
+        const newItem = { date: "New Date", title: "New Milestone", description: "Description here..." };
+        const newStory = [...(config.story || []), newItem];
         updateConfig('story', newStory);
     };
 
     const removeStoryItem = (index) => {
-        const newStory = config.story.filter((_, i) => i !== index);
+        const newStory = (config.story || []).filter((_, i) => i !== index);
         updateConfig('story', newStory);
     };
 
     const updateEvent = (index, field, value) => {
-        const newEvents = [...config.events];
-        newEvents[index][field] = value;
+        const newEvents = config.events.map((event, i) =>
+            i === index ? { ...event, [field]: value } : event
+        );
         updateConfig('events', newEvents);
     };
 
     const deleteGuest = (guestToDelete) => {
         if (confirm('Remove this guest?')) {
-            const newGuests = config.guestList.filter(g => g.timestamp !== guestToDelete.timestamp);
+            const newGuests = (config.guestList || []).filter(g => g.timestamp !== guestToDelete.timestamp);
             updateConfig('guestList', newGuests);
         }
     };
 
     const updateEntourageGroup = (groupIndex, field, value) => {
-        const newGroups = [...(config.entourageGroups || [])];
-        newGroups[groupIndex] = { ...newGroups[groupIndex], [field]: value };
+        const newGroups = (config.entourageGroups || []).map((group, i) =>
+            i === groupIndex ? { ...group, [field]: value } : group
+        );
         updateConfig('entourageGroups', newGroups);
     };
 
     const updateEntourageName = (groupIndex, nameIndex, value) => {
-        const newGroups = [...(config.entourageGroups || [])];
-        const newNames = [...newGroups[groupIndex].names];
-        newNames[nameIndex] = value;
-        newGroups[groupIndex] = { ...newGroups[groupIndex], names: newNames };
+        const newGroups = (config.entourageGroups || []).map((group, i) => {
+            if (i !== groupIndex) return group;
+            const newNames = group.names.map((name, j) => j === nameIndex ? value : name);
+            return { ...group, names: newNames };
+        });
         updateConfig('entourageGroups', newGroups);
     };
 
     const addEntourageName = (groupIndex) => {
-        const newGroups = [...(config.entourageGroups || [])];
-        newGroups[groupIndex] = {
-            ...newGroups[groupIndex],
-            names: [...newGroups[groupIndex].names, "New Name"]
-        };
+        const newGroups = (config.entourageGroups || []).map((group, i) => {
+            if (i !== groupIndex) return group;
+            return { ...group, names: [...group.names, "New Name"] };
+        });
         updateConfig('entourageGroups', newGroups);
     };
 
     const removeEntourageName = (groupIndex, nameIndex) => {
-        const newGroups = [...(config.entourageGroups || [])];
-        const newNames = newGroups[groupIndex].names.filter((_, i) => i !== nameIndex);
-        newGroups[groupIndex] = { ...newGroups[groupIndex], names: newNames };
+        const newGroups = (config.entourageGroups || []).map((group, i) => {
+            if (i !== groupIndex) return group;
+            const newNames = group.names.filter((_, j) => j !== nameIndex);
+            return { ...group, names: newNames };
+        });
         updateConfig('entourageGroups', newGroups);
     };
 
@@ -298,15 +304,14 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     const removeEntourageGroup = (index) => {
         if (confirm("Remove this entire group?")) {
-            const newGroups = config.entourageGroups.filter((_, i) => i !== index);
+            const newGroups = (config.entourageGroups || []).filter((_, i) => i !== index);
             updateConfig('entourageGroups', newGroups);
         }
     };
 
     // Generic list helpers for Groomsmen/Bridesmaids
     const updateListItem = (listKey, index, value) => {
-        const newList = [...(config[listKey] || [])];
-        newList[index] = value;
+        const newList = (config[listKey] || []).map((item, i) => i === index ? value : item);
         updateConfig(listKey, newList);
     };
 
@@ -322,8 +327,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     // Principal Sponsors Helpers
     const updatePrincipalSponsor = (index, field, value) => {
-        const newList = [...(config.principalSponsors || [])];
-        newList[index] = { ...newList[index], [field]: value };
+        const newList = (config.principalSponsors || []).map((sponsor, i) =>
+            i === index ? { ...sponsor, [field]: value } : sponsor
+        );
         updateConfig('principalSponsors', newList);
     };
 
@@ -339,8 +345,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     // Secondary Sponsors Helpers
     const updateSecondarySponsor = (index, field, value) => {
-        const newList = [...(config.secondarySponsors || [])];
-        newList[index] = { ...newList[index], [field]: value };
+        const newList = (config.secondarySponsors || []).map((sponsor, i) =>
+            i === index ? { ...sponsor, [field]: value } : sponsor
+        );
         updateConfig('secondarySponsors', newList);
     };
 
@@ -356,8 +363,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     // Bearers Helpers
     const updateBearer = (index, field, value) => {
-        const newList = [...(config.bearers || [])];
-        newList[index] = { ...newList[index], [field]: value };
+        const newList = (config.bearers || []).map((bearer, i) =>
+            i === index ? { ...bearer, [field]: value } : bearer
+        );
         updateConfig('bearers', newList);
     };
 
@@ -373,8 +381,9 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
 
     // Color Palette Helpers
     const updateColor = (index, field, value) => {
-        const newPalette = [...(config.colorPalette || [])];
-        newPalette[index] = { ...newPalette[index], [field]: value };
+        const newPalette = (config.colorPalette || []).map((color, i) =>
+            i === index ? { ...color, [field]: value } : color
+        );
         updateConfig('colorPalette', newPalette);
     };
 
