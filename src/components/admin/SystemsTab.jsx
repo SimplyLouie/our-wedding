@@ -2,7 +2,7 @@ import React from 'react';
 import { RefreshCw, AlertCircle, Database } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const SystemsTab = ({ config, updateConfig, onSave, handleResetRequest, resetConfirm }) => {
+const SystemsTab = ({ config, updateConfig, onSave }) => {
     return (
         <div className="space-y-8 animate-fade-in max-w-2xl">
             <div className="border-b border-[#E6D2B5]/30 pb-6">
