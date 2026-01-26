@@ -56,32 +56,36 @@ export default function App() {
 
   // 2. Data Sync
   useEffect(() => {
+    // We listen to the config document. This should be public-read in Firestore rules.
     const unsubscribe = onSnapshot(doc(db, 'wedding', 'config'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
+        console.log("Live configuration received from Firestore.");
 
         setConfig(prev => {
-          // If the admin panel is open, we avoid overwriting the entire config
-          // to protect unsaved local edits (like Story or Timeline changes).
-          // We still sync the guest list in real-time for convenience.
+          // PROTECTION: If the admin panel is open, we only sync the guestList.
+          // This prevents unsaved local edits from being overwritten by the real-time listener.
           if (showAdminPanel) {
             return {
               ...prev,
               guestList: data.guestList || prev.guestList,
-              // Preserve local edits for the rest of the configuration
             };
           }
 
-          // Full sync when panel is closed or on initial load
+          // Full merge for guests and initial load.
           return { ...defaultConfig, ...data };
         });
       } else {
-        // Fallback to defaults if no document exists in Firestore
-        setConfig(prev => showAdminPanel ? prev : defaultConfig);
+        console.warn("No 'config' document found in Firestore. Using defaultConfig.");
       }
       setLoading(false);
     }, (error) => {
-      console.error("Firestore sync error:", error);
+      console.error("CRITICAL: Firestore sync failed.", error);
+      if (error.code === 'permission-denied') {
+        toast.error("Access denied. Please check Firestore security rules for guest access.");
+      } else {
+        toast.error(`Auto-Sync Error: ${error.message}`);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
