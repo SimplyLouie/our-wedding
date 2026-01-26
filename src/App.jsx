@@ -54,44 +54,55 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const [hasSynced, setHasSynced] = useState(false);
+  const showAdminPanelRef = useRef(showAdminPanel);
+
+  useEffect(() => {
+    showAdminPanelRef.current = showAdminPanel;
+  }, [showAdminPanel]);
+
   // 2. Data Sync
   useEffect(() => {
-    console.log("Initializing Firestore Sync...");
+    console.log("[Sync] Initializing Firestore Listener...");
+
     const unsubscribe = onSnapshot(doc(db, 'wedding', 'config'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log("Snapshot received from Firestore. State update pending...");
 
         setConfig(prev => {
-          // If the admin panel is open, we avoid overwriting the entire config
-          // to protect unsaved local edits (like Story or Timeline changes).
-          if (showAdminPanel) {
-            console.log("Admin Panel Open: Syncing Guest List only.");
-            return {
-              ...prev,
-              guestList: data.guestList || prev.guestList,
-            };
+          // If this is the FIRST time we get data, or if the Admin Panel is CLOSED,
+          // we do a full merge from the database.
+          if (!hasSynced || !showAdminPanelRef.current) {
+            console.log("[Sync] Performing FULL merge from Firestore.");
+            return { ...defaultConfig, ...data };
           }
 
-          // Full merge for initial load or for guests.
-          // Note: { ...defaultConfig, ...data } means database values OVERWRITE code defaults.
-          console.log("Merging Firestore data into local config.");
-          return { ...defaultConfig, ...data };
+          // If the Admin Panel is OPEN and we've already synced once,
+          // we only sync the guest list to protect any unsaved local edits
+          // the admin might be currently typing (like Story or Timeline changes).
+          console.log("[Sync] Admin Panel Open: Merging Guest List only.");
+          return {
+            ...prev,
+            guestList: data.guestList || prev.guestList,
+          };
         });
+
+        setHasSynced(true);
       } else {
-        console.warn("No remote configuration found. Using code defaults.");
-        setConfig(prev => showAdminPanel ? prev : defaultConfig);
+        console.warn("[Sync] Document not found. Using defaults.");
+        if (!hasSynced) setConfig(defaultConfig);
       }
       setLoading(false);
     }, (error) => {
-      console.error("Firestore sync failed:", error);
+      console.error("[Sync] Error:", error);
       if (error.code === 'permission-denied') {
-        toast.error("Access Denied: Please check Firestore Security Rules.");
+        toast.error("Database access denied for guests.");
       }
       setLoading(false);
     });
+
     return () => unsubscribe();
-  }, [showAdminPanel]);
+  }, [hasSynced]); // showAdminPanel removed from dependencies, using ref instead
 
   // 3. Preloader Logic
   useEffect(() => {
@@ -213,36 +224,16 @@ export default function App() {
       const newConfig = { ...config, guestList: updatedGuestList };
       setConfig(newConfig);
 
-      // Try updateDoc first (safer for concurrent writes)
+      // Try updateDoc (safest for concurrent writes)
       await updateDoc(doc(db, 'wedding', 'config'), { guestList: arrayUnion(newGuest) });
 
       setIsSubmitting(false);
       setIsSubmitted(true);
       toast.success("RSVP Sent Successfully!");
-      // Reset sensitive fields
       setRsvpForm(prev => ({ ...prev, message: '' }));
     } catch (err) {
-      console.error("Primary RSVP save failed:", err);
-
-      // Fallback: If document doesn't exist, create it with setDoc
-      if (err.code === 'not-found' || err.message.includes('No document to update')) {
-        try {
-          const newGuest = { ...rsvpForm, timestamp: new Date().toISOString() };
-          const updatedGuestList = [...(config.guestList || []), newGuest];
-          const newConfig = { ...config, guestList: updatedGuestList };
-
-          await setDoc(doc(db, 'wedding', 'config'), newConfig);
-
-          setIsSubmitting(false);
-          setIsSubmitted(true);
-          toast.success("RSVP Sent Successfully!");
-          return;
-        } catch (createErr) {
-          console.error("Secondary RSVP save failed:", createErr);
-        }
-      }
-
-      toast.error(`Error: ${err.code || "Connection failed"}`);
+      console.error("RSVP Submission Error:", err);
+      toast.error(`Error: ${err.code === 'permission-denied' ? "Submission restricted" : "Connection failed"}`);
       setIsSubmitting(false);
     }
   };
