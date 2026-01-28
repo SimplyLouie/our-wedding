@@ -1,48 +1,9 @@
 import React from 'react';
 import { Camera, Shirt } from 'lucide-react';
-import { ScrollReveal, SectionHeading } from '../Shared';
+import { SuitIcon, DressIcon, ScrollReveal, SectionHeading } from '../Shared';
 
-// Detailed SVG Icons matching user reference
-const SuitIcon = ({ color }) => (
-    <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-lg transition-colors duration-500">
-        {/* Jacket */}
-        <path d="M20,30 Q20,10 50,10 Q80,10 80,30 V90 H20 V30 Z" fill={color} />
-        {/* Shoulders/Arms */}
-        <path d="M20,30 L10,80 H25 L30,35 Z" fill={color} />
-        <path d="M80,30 L90,80 H75 L70,35 Z" fill={color} />
-        {/* Pants */}
-        <rect x="25" y="90" width="20" height="50" rx="2" fill={color} />
-        <rect x="55" y="90" width="20" height="50" rx="2" fill={color} />
-        {/* Shoes */}
-        <path d="M25,140 Q25,145 35,145 Q45,145 45,140" fill="#333" />
-        <path d="M55,140 Q55,145 65,145 Q75,145 75,140" fill="#333" />
-        {/* Shirt (White V-shape) */}
-        <path d="M40,15 L50,45 L60,15 Z" fill="white" />
-        {/* Bowtie */}
-        <path d="M45,18 L55,18 L50,22 Z" fill="#333" />
-        <path d="M45,18 L35,15 L45,22 Z" fill="#333" />
-        <path d="M55,18 L65,15 L55,22 Z" fill="#333" />
-        {/* Buttons */}
-        <circle cx="50" cy="60" r="2" fill="white" opacity="0.8" />
-        <circle cx="50" cy="75" r="2" fill="white" opacity="0.8" />
-    </svg>
-);
 
-const DressIcon = ({ color }) => (
-    <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-lg transition-colors duration-500">
-        {/* Bodice (Top) */}
-        <path d="M30,30 Q30,40 35,50 L65,50 Q70,40 70,30 Q50,35 30,30 Z" fill={color} />
-        {/* Neckline Decor */}
-        <path d="M30,30 Q50,40 70,30" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
-        {/* Skirt (Bell Shape) */}
-        <path d="M35,50 Q20,100 15,140 Q50,145 85,140 Q80,100 65,50 Z" fill={color} />
-        {/* Waistline */}
-        <path d="M35,50 L65,50" stroke="white" strokeWidth="1" opacity="0.5" />
-        {/* Skirt Folds/Details */}
-        <path d="M25,100 Q50,110 75,100" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" />
-        <path d="M20,120 Q50,130 80,120" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" />
-    </svg>
-);
+
 
 const ColorPaletteSection = ({ config }) => {
     const [selectedColor, setSelectedColor] = React.useState(null);

@@ -1,11 +1,59 @@
 import React from 'react';
-import { ScrollReveal, SectionHeading } from '../Shared';
+import { ScrollReveal, SectionHeading, SuitIcon, DressIcon } from '../Shared';
+
+
 
 const EntourageSection = ({ config }) => {
     return (
         <section id="entourage" className="py-20 md:py-32 px-4 bg-[#FDFBF7] relative z-10">
             <div className="max-w-4xl mx-auto text-center">
                 <ScrollReveal><SectionHeading title={config.entourageTitle || "The Entourage"} subtitle={config.entourageSubtitle || "Wedding Party"} /></ScrollReveal>
+
+                {/* Visual Entourage Palette */}
+                <ScrollReveal variant="up" delay={200}>
+                    <div className="mb-20 md:mb-32">
+                        <div className="flex flex-wrap justify-center gap-6 md:gap-12 lg:gap-16">
+                            {[
+                                { label: "Best Man", type: 'suit', color: config.entouragePalette?.bestMan || "#43342E", isBestMan: true },
+                                { label: "Groomsmen", type: 'suit', color: config.entouragePalette?.groomsmen || "#43342E" },
+                                { label: "Maid of Honor", type: 'dress', color: config.entouragePalette?.maidOfHonor || "#E6D2B5", hasBouquet: true },
+                                { label: "Bridesmaid", type: 'dress', color: config.entouragePalette?.bridesmaid || "#E6D2B5", hasBouquet: true },
+                                { label: "Parents of Bride & Groom", type: 'both', color: config.entouragePalette?.parents || "#8C9E8C" },
+                                { label: "Bearers (Coin & Ring)", type: 'kids', color: config.entouragePalette?.bearers || "#43342E" }
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center gap-3 w-28 md:w-32 lg:w-40 group">
+                                    <div className="h-40 md:h-52 w-full flex justify-center items-end relative">
+                                        {/* Background Glow */}
+                                        <div
+                                            className="absolute inset-0 bg-white shadow-sm rounded-2xl -z-10 group-hover:shadow-md transition-shadow duration-500"
+                                            style={{ backgroundColor: `${item.color}05` }}
+                                        ></div>
+
+                                        {item.type === 'suit' && <SuitIcon color={item.color} className="h-[85%] w-auto" isBestMan={item.isBestMan} />}
+                                        {item.type === 'dress' && <DressIcon color={item.color} className="h-[85%] w-auto" hasBouquet={item.hasBouquet} />}
+                                        {item.type === 'both' && (
+                                            <div className="flex -space-x-8 items-end h-full">
+                                                <SuitIcon color={item.color} className="h-[75%] w-auto drop-shadow-md" />
+                                                <DressIcon color={item.color} className="h-[75%] w-auto drop-shadow-md" hasBouquet={true} />
+                                            </div>
+                                        )}
+                                        {item.type === 'kids' && (
+                                            <div className="flex -space-x-4 items-end h-full pb-4">
+                                                <SuitIcon color={item.color} className="h-[60%] w-auto" />
+                                                <SuitIcon color={item.color} className="h-[60%] w-auto" />
+                                            </div>
+                                        )}
+
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="block text-[10px] md:text-xs font-bold text-[#B08D55] uppercase tracking-widest">{item.label}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="mt-8 text-xs md:text-sm text-[#8C7C72] italic">Fixed color palette for our beloved Entourage</p>
+                    </div>
+                </ScrollReveal>
 
 
                 {/* Parents of the Couple */}

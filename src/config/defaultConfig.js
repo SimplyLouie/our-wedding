@@ -84,6 +84,14 @@ export const defaultConfig = {
     ],
     flowerGirls: ["Little Miss A", "Little Miss B", "Little Miss C"],
     offertory: ["Family A", "Family B"],
+    entouragePalette: {
+        bestMan: "#43342E",
+        groomsmen: "#43342E",
+        maidOfHonor: "#E6D2B5",
+        bridesmaid: "#E6D2B5",
+        parents: "#8C9E8C",
+        bearers: "#43342E"
+    },
     entourageGroups: [],
     galleryImages: [
         "https://images.unsplash.com/photo-1621621667797-e06afc217fb0?auto=format&fit=crop&w=600&q=90",
@@ -94,6 +102,12 @@ export const defaultConfig = {
         "https://images.unsplash.com/photo-1522673607200-1645062cd958?auto=format&fit=crop&w=600&q=90",
         "https://images.unsplash.com/photo-1519225421980-715cb0202128?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=90",
         "https://images.unsplash.com/photo-1607193384230-25e635834331?auto=format&fit=crop&w=600&q=90"
+    ],
+    videosTitle: "Our Memories",
+    videosSubtitle: "SDE & Prenup Videos",
+    videos: [
+        { id: 'prenup', title: "Prenup Video", url: "", type: 'youtube' },
+        { id: 'sde', title: "Same Day Edit (SDE)", url: "", type: 'youtube' }
     ],
     registryTitle: "Gift Registry",
     registrySubtitle: "Love & Support",
@@ -126,10 +140,11 @@ export const defaultConfig = {
         { id: 'timeline', label: 'Program', visible: true },
         { id: 'weather', label: 'Weather', visible: true },
         { id: 'faq', label: 'FAQ', visible: true },
-        { id: 'palette', label: 'Color Palette', visible: true },
         { id: 'entourage', label: 'Entourage', visible: true },
+        { id: 'palette', label: 'Color Palette', visible: true },
         { id: 'gallery', label: 'Gallery', visible: true },
         { id: 'registry', label: 'Gift Registry', visible: true },
+        { id: 'videos', label: 'Videos', visible: true },
         { id: 'rsvp', label: 'RSVP', visible: true },
         { id: 'events', label: 'Events', visible: true },
         { id: 'map', label: 'Venue Map', visible: true },

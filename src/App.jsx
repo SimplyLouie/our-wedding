@@ -23,6 +23,7 @@ import RsvpSection from './components/sections/RsvpSection';
 import RegistrySection from './components/sections/RegistrySection';
 import MapSection from './components/sections/MapSection';
 import GuestbookSection from './components/sections/GuestbookSection';
+import VideosSection from './components/sections/VideosSection';
 import WeatherSection from './components/sections/WeatherSection';
 import FaqSection from './components/sections/FaqSection';
 
@@ -432,6 +433,8 @@ export default function App() {
               return <RegistrySection key="registry" config={config} />;
             case 'map':
               return <MapSection key="map" config={config} />;
+            case 'videos':
+              return <VideosSection key="videos" config={config} />;
             case 'guestbook':
               return (
                 <GuestbookSection

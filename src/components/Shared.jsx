@@ -295,7 +295,7 @@ export const Navigation = ({ config = {}, sectionOrder = [] }) => {
             window.removeEventListener('scroll', handleScroll);
             observer.disconnect();
         };
-    }, []);
+    }, [navLinks.length, JSON.stringify(navLinks.map(l => l.id))]);
 
     const initials = coupleName ? coupleName.split('&').map(n => n.trim()[0]).join(' & ') : "L & F";
     const logoContent = (logoImage && logoImage.length > 10) ? (
@@ -447,3 +447,123 @@ export const TimelineItem = ({ date, title, description, side }) => (
         </div>
     </ScrollReveal>
 );
+
+// --- ICONS ---
+// --- ICONS ---
+export const SuitIcon = React.memo(({ color, className = "", isBestMan = false }) => (
+
+    <svg viewBox="0 0 120 200" className={`w-full h-full drop-shadow-xl transition-all duration-500 scale-105 ${className}`}>
+        {/* Shadow/Glow Base */}
+        <ellipse cx="60" cy="190" rx="30" ry="5" fill="#000" opacity="0.05" />
+
+        {/* Body Positioning */}
+        <g transform="translate(10, 5)">
+            {/* Neck & Back Hair (Layered behind) */}
+            <path d="M42,42 L42,50 L58,50 L58,42" fill="#F5D5B0" />
+            <path d="M32,28 Q32,10 50,10 Q68,10 68,28" fill="#43342E" /> {/* Back Hair */}
+
+            {/* Head Skin (Drawn on top of back hair) */}
+            <circle cx="50" cy="28" r="18" fill="#F5D5B0" />
+
+            {/* Hair Fringe (Drawn on top of forehead) */}
+            <path d="M32,28 Q32,10 50,10 Q68,10 68,28 C68,20 50,15 32,28" fill="#43342E" />
+
+            {/* Expression */}
+            <g opacity="0.8">
+                <path d="M42,26 Q44,24 46,26" fill="none" stroke="#43342E" strokeWidth="1" />
+                <path d="M54,26 Q56,24 58,26" fill="none" stroke="#43342E" strokeWidth="1" />
+                <circle cx="44" cy="30" r="1.5" fill="#333" />
+                <circle cx="56" cy="30" r="1.5" fill="#333" />
+                <path d="M44,38 Q50,42 56,38" fill="none" stroke="#333" strokeWidth="1" strokeLinecap="round" />
+            </g>
+
+
+
+            <g transform="translate(0, 48)">
+                {/* Jacket with Lapels */}
+                <path d="M20,30 Q20,10 50,10 Q80,10 80,30 V100 H20 V30 Z" fill={color} />
+                <path d="M50,10 L30,40 L50,80 L70,40 Z" fill="rgba(0,0,0,0.1)" /> {/* Lapel Shadow */}
+
+                {/* Shoulders */}
+                <path d="M20,30 L5,80 L25,85 L30,35 Z" fill={color} />
+                <path d="M80,30 L95,80 L75,85 L70,35 Z" fill={color} />
+
+                {/* Shirt & Tie */}
+                <path d="M40,10 L50,40 L60,10 Z" fill="#FFF" />
+                <path d="M45,15 L50,35 L55,15 Z" fill={isBestMan ? "#B08D55" : "#43342E"} /> {/* Tie */}
+
+                {/* Boutonniere */}
+                <g transform="translate(25, 20)">
+                    <circle cx="0" cy="0" r="3" fill="#FFF" />
+                    <path d="M-1,1 L1,5" stroke="green" strokeWidth="1" />
+                </g>
+
+                {/* Pocket Square */}
+                <path d="M62,35 H72 V38 Q67,36 62,35 Z" fill="#FFF" opacity="0.9" />
+
+                {/* Pants & Shoes */}
+                <rect x="25" y="100" width="22" height="40" rx="2" fill={color} />
+                <rect x="53" y="100" width="22" height="40" rx="2" fill={color} />
+                <path d="M25,140 Q25,148 36,148 Q47,148 47,140" fill="#222" />
+                <path d="M53,140 Q53,148 64,148 Q75,148 75,140" fill="#222" />
+            </g>
+        </g>
+    </svg>
+));
+
+export const DressIcon = React.memo(({ color, className = "", hasBouquet = false }) => (
+
+    <svg viewBox="0 0 120 200" className={`w-full h-full drop-shadow-xl transition-all duration-500 scale-105 ${className}`}>
+        <ellipse cx="60" cy="190" rx="30" ry="5" fill="#000" opacity="0.05" />
+
+        <g transform="translate(10, 5)">
+            {/* Neck & Back Hair (Layered behind) */}
+            <path d="M45,45 L45,52 L55,52 L55,45" fill="#F5D5B0" />
+            <path d="M34,25 Q30,45 34,60 Q40,65 50,60 Q60,65 66,60 Q70,45 66,25 Q66,8 50,8 Q34,8 34,25" fill="#43342E" />
+
+            {/* Head Skin (Drawn on top of back hair) */}
+            <circle cx="50" cy="28" r="16" fill="#F5D5B0" />
+
+            {/* Hair Fringe (Drawn on top of forehead) */}
+            <path d="M34,25 Q34,8 50,8 Q66,8 66,25 C66,15 50,12 34,25" fill="#43342E" />
+
+            {/* Expression */}
+            <g opacity="0.8">
+                <path d="M44,27 Q46,25 48,27" fill="none" stroke="#43342E" strokeWidth="0.8" />
+                <path d="M52,27 Q54,25 56,27" fill="none" stroke="#43342E" strokeWidth="0.8" />
+                <circle cx="45" cy="31" r="1.2" fill="#333" />
+                <circle cx="55" cy="31" r="1.2" fill="#333" />
+                <path d="M45,39 Q50,43 55,39" fill="none" stroke="#E6A8A8" strokeWidth="1.5" strokeLinecap="round" />
+            </g>
+
+
+
+            <g transform="translate(0, 48)">
+                {/* Dress Bodice */}
+                <path d="M30,30 Q30,45 35,55 L65,55 Q70,45 70,30 Q50,38 30,30 Z" fill={color} />
+                <path d="M30,30 Q50,40 70,30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+
+                {/* Skirt - Fluid Shape */}
+                <path d="M35,55 Q15,100 10,145 Q50,152 90,145 Q85,100 65,55 Z" fill={color} />
+                <path d="M35,55 Q50,65 65,55" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
+
+                {/* Skirt Details/Folds */}
+                <path d="M25,100 Q50,115 75,100" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                <path d="M20,125 Q50,140 80,125" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+
+                {/* Bouquet */}
+                {hasBouquet && (
+                    <g transform="translate(50, 65)">
+                        {/* Stems */}
+                        <path d="M-2,0 L2,10 M2,0 L-2,10" stroke="#4A5D4A" strokeWidth="1.5" />
+                        {/* Flowers */}
+                        <circle cx="-3" cy="-2" r="4" fill="#FFF" />
+                        <circle cx="3" cy="-3" r="4" fill="#E6D2B5" />
+                        <circle cx="0" cy="-5" r="5" fill="#FFF" />
+                        <circle cx="0" cy="-2" r="3" fill="#B08D55" opacity="0.5" />
+                    </g>
+                )}
+            </g>
+        </g>
+    </svg>
+));

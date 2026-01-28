@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import {
     Settings, Save, X, Loader
 } from 'lucide-react';
+import { defaultConfig } from '../config/defaultConfig';
 
 // Modular Components
 import AdminSidebar from './admin/AdminSidebar';
@@ -24,6 +25,7 @@ import MapTab from './admin/MapTab';
 import GuestbookTab from './admin/GuestbookTab';
 import WeatherTab from './admin/WeatherTab';
 import FaqTab from './admin/FaqTab';
+import VideosTab from './admin/VideosTab';
 
 const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, onSave }) => {
     const [activeTab, setActiveTab] = useState('guests');
@@ -539,6 +541,12 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         setActiveTab={setActiveTab}
                         handleResetRequest={handleResetRequest}
                         resetConfirm={resetConfirm}
+                        sectionOrder={(() => {
+                            const currentOrder = config.sectionOrder || [];
+                            const defaultOrder = defaultConfig.sectionOrder || [];
+                            const missing = defaultOrder.filter(d => !currentOrder.find(c => c.id === d.id));
+                            return [...currentOrder, ...missing];
+                        })()}
                     />
 
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
@@ -605,6 +613,7 @@ const AdminPanel = ({ config, updateConfig, resetConfig, closePanel, isSaving, o
                         {activeTab === 'weather' && <WeatherTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'faq' && <FaqTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'guestbook' && <GuestbookTab config={config} updateConfig={updateConfig} />}
+                        {activeTab === 'videos' && <VideosTab config={config} updateConfig={updateConfig} />}
                         {activeTab === 'systems' && (
                             <SystemsTab
                                 config={config}

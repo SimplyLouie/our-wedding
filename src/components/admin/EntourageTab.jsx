@@ -39,6 +39,37 @@ const EntourageTab = ({
                 </div>
             </div>
 
+            {/* Entourage Palette Control */}
+            <div className="bg-[#FAF9F6] p-6 rounded-lg border border-[#E6D2B5] space-y-4">
+                <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-xs font-bold text-[#B08D55] uppercase tracking-widest">Entourage Palette</h4>
+                    <span className="text-[10px] text-[#8C7C72] italic uppercase">Attire Colors</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                    {[
+                        { key: 'bestMan', label: 'Best Man' },
+                        { key: 'groomsmen', label: 'Groomsmen' },
+                        { key: 'maidOfHonor', label: 'Maid of Honor' },
+                        { key: 'bridesmaid', label: 'Bridesmaid' },
+                        { key: 'parents', label: 'Parents' },
+                        { key: 'bearers', label: 'Bearers' }
+                    ].map((item) => (
+                        <div key={item.key} className="flex flex-col items-center gap-2 group">
+                            <div className="relative">
+                                <input
+                                    type="color"
+                                    value={config.entouragePalette?.[item.key] || '#43342E'}
+                                    onChange={(e) => updateConfig('entouragePalette', { ...config.entouragePalette, [item.key]: e.target.value })}
+                                    className="w-10 h-10 rounded-full cursor-pointer border-2 border-white shadow-sm hover:scale-110 transition-transform"
+                                />
+                            </div>
+                            <span className="text-[9px] font-bold text-[#43342E] uppercase text-center">{item.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+
             <div className="grid md:grid-cols-2 gap-8 p-6 bg-white rounded-lg border border-[#E6D2B5]">
                 <div className="group">
                     <label className="block text-[10px] font-bold text-[#B08D55] uppercase mb-2">Parents of the Groom</label>

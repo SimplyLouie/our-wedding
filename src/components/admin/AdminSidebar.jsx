@@ -2,29 +2,69 @@ import React from 'react';
 import {
     Users, ClipboardList, Settings, Heart, Clock,
     Calendar, Star, Palette, Gift, ImageIcon,
-    Globe, RefreshCw, Trash2, Layout, Map, MessageSquare, CloudSun, HelpCircle
+    Globe, RefreshCw, Trash2, Layout, Map, MessageSquare, CloudSun, HelpCircle, Video
 } from 'lucide-react';
 
-const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetRequest }) => {
-    const tabs = [
+const AdminSidebar = ({ activeTab, setActiveTab, resetConfirm, handleResetRequest, sectionOrder = [] }) => {
+    // System tabs that should always be at the top and in this order
+    const systemTabs = [
         { id: 'guests', label: 'Guest List', shortLabel: 'Guests', icon: Users },
         { id: 'planner', label: 'Planner', shortLabel: 'Plan', icon: ClipboardList },
         { id: 'organizer', label: 'Organizer', shortLabel: 'Org', icon: Layout },
         { id: 'general', label: 'General', shortLabel: 'Gen', icon: Settings },
-        { id: 'story', label: 'Our Story', shortLabel: 'Story', icon: Heart },
-        { id: 'timeline', label: 'Timeline', shortLabel: 'Time', icon: Clock },
-        { id: 'events', label: 'Events', shortLabel: 'Events', icon: Calendar },
-        { id: 'entourage', label: 'Entourage', shortLabel: 'Entourage', icon: Star },
-        { id: 'colors', label: 'Palette', shortLabel: 'Palette', icon: Palette },
-        { id: 'rsvp', label: 'RSVP Config', shortLabel: 'RSVP', icon: Gift },
-        { id: 'images', label: 'Images', shortLabel: 'Imgs', icon: ImageIcon },
-        { id: 'registry', label: 'Gift Registry', shortLabel: 'Gift', icon: Gift },
-        { id: 'map', label: 'Venue Map', shortLabel: 'Map', icon: Map },
-        { id: 'weather', label: 'Weather', shortLabel: 'Sun', icon: CloudSun },
-        { id: 'faq', label: 'FAQ', shortLabel: 'FAQ', icon: HelpCircle },
-        { id: 'guestbook', label: 'Guestbook', shortLabel: 'Book', icon: MessageSquare },
+    ];
+
+    // Tabs that correspond to dynamic sections
+    const sectionTabsMap = {
+        'story': { label: 'Our Story', shortLabel: 'Story', icon: Heart },
+        'timeline': { label: 'Timeline', shortLabel: 'Time', icon: Clock },
+        'events': { label: 'Events', shortLabel: 'Events', icon: Calendar },
+        'entourage': { label: 'Entourage', shortLabel: 'Ent', icon: Star },
+        'palette': { label: 'Palette', shortLabel: 'Pal', icon: Palette },
+        'rsvp': { label: 'RSVP Config', shortLabel: 'RSVP', icon: Gift },
+        'gallery': { label: 'Images', shortLabel: 'Imgs', icon: ImageIcon },
+        'registry': { label: 'Gift Registry', shortLabel: 'Gift', icon: Gift },
+        'map': { label: 'Venue Map', shortLabel: 'Map', icon: Map },
+        'weather': { label: 'Weather', shortLabel: 'Sun', icon: CloudSun },
+        'faq': { label: 'FAQ', shortLabel: 'FAQ', icon: HelpCircle },
+        'guestbook': { label: 'Guestbook', shortLabel: 'Book', icon: MessageSquare },
+        'videos': { label: 'Videos', shortLabel: 'Vids', icon: Video },
+    };
+
+    // Other system tabs that should be at the bottom
+    const bottomTabs = [
         { id: 'systems', label: 'Systems', shortLabel: 'Sys', icon: Globe }
     ];
+
+    // Build the dynamic section tabs based on sectionOrder
+    const dynamicSectionTabs = sectionOrder.map(section => {
+        // Map section.id to tab.id if they differ
+        let tabId = section.id;
+        if (section.id === 'palette') tabId = 'colors';
+        if (section.id === 'gallery') tabId = 'images';
+
+        const baseTab = sectionTabsMap[section.id];
+        if (!baseTab) return null;
+        return {
+            id: tabId,
+            label: section.label, // Use the custom label from sectionOrder
+            shortLabel: baseTab.shortLabel,
+            icon: baseTab.icon
+        };
+    }).filter(Boolean);
+
+    // Identify any sections that are NOT in sectionOrder but might need to be shown (fallback)
+    const existingSectionIds = new Set(sectionOrder.map(s => s.id));
+    const missingSectionTabs = Object.keys(sectionTabsMap)
+        .filter(id => !existingSectionIds.has(id))
+        .map(id => {
+            let tabId = id;
+            if (id === 'palette') tabId = 'colors';
+            if (id === 'gallery') tabId = 'images';
+            return { id: tabId, ...sectionTabsMap[id] };
+        });
+
+    const tabs = [...systemTabs, ...dynamicSectionTabs, ...missingSectionTabs, ...bottomTabs];
 
     return (
         <div className="relative w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-[#E6D2B5]/30 flex shrink-0 z-20">
